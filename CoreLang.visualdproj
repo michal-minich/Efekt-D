@@ -190,7 +190,10 @@
  </Config>
  <Folder name="CoreLang">
   <File path="ast.d" />
+  <File path="common.d" />
   <File path="main.d" />
   <File path="parser.d" />
+  <File path="printer.d" />
+  <File path="utils.d" />
  </Folder>
 </DProject>

@@ -1,18 +1,27 @@
 module main;
 
-
 import std.stdio;
-import parser;
+import utils, common, printer, parser;
+
+@safe nothrow:
 
 
 int main(string[] argv)
 {
-    auto asis = parse(" \t 123  ");
+    auto asis = parse("2+1");
+
+    auto p = new AsiPrinter(new ConsolePrinter);
 
     foreach (a; asis)
-        writeln("\"", a.text, "\"");
+        a.accept(p);
 
-    readln();
+    readLine();
 
     return 0;
+}
+
+
+@trusted void readLine()
+{
+    dontThrow(readln());
 }

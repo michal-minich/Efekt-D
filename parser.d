@@ -1,10 +1,17 @@
 module parser;
 
-
 import ast;
 
-
 @safe nothrow:
+
+
+string next (string end)
+{
+    return "
+    ++codeIx;
+    if (codeIx == code.length) goto " ~ end ~ ";
+    ch = code[codeIx];";
+}
 
 
 Asi[] parse(dstring code)
@@ -22,32 +29,53 @@ Asi[] parse(dstring code)
     next:
 
     while (ch == ' ' || ch == '\t')
+        mixin (next("end"));
+
+    if (ch =='+')
     {
-        ++codeIx;
-        if (codeIx == code.length) goto end;
-        ch = code[codeIx];
+        Exp op1;
+        if (asiIx)
+        {
+            op1 = cast(Exp)asis[asiIx - 1];
+            if (!op1)
+                assert(false, "expression expected before operator, not statement");
+        }
+        else
+            assert(false, "expression expected before operator");
+
+        mixin (next("end"));
+
+        asis[asiIx - 1] = new OpApply(code[codeIx - 1 .. codeIx], op1, null);
     }
 
     if (ch >= '0' && ch <= '9')
     {
         startIx = codeIx;
 
-        ++codeIx;
-        if (codeIx == code.length) goto intEnd;
-        ch = code[codeIx];
+        mixin (next("intEnd"));
 
         while (ch >= '0' && ch <= '9')
-        {
-            ++codeIx;
-            if (codeIx == code.length) goto intEnd;
-            ch = code[codeIx];
-        }
+            mixin (next("intEnd"));
 
         intEnd:
 
-        asis[asiIx] = new Int(code[startIx .. codeIx]);
-        ++asiIx;
+        auto i = new Int(code[startIx .. codeIx]);
+
+        OpApply opApply;
+        if (asiIx)
+            opApply = cast(OpApply)asis[asiIx - 1];
+        
+        if (opApply)
+            opApply.op2 = i;
+        else
+        {
+            asis[asiIx] = i;
+            ++asiIx;
+        }
     }
+
+    if (codeIx != code.length)
+        goto next;
 
     end:
 
