@@ -8,12 +8,14 @@ import utils, common, printer, parser;
 
 int main(string[] argv)
 {
-    auto asis = parse("2+1");
+    auto stdp = new StdOutPrinter;
+    errp = new ErrorPrinter(stdp);
+    asip = new AsiPrinter(stdp);
 
-    auto p = new AsiPrinter(new ConsolePrinter);
+    auto asis = parse("+1");
 
     foreach (a; asis)
-        a.accept(p);
+        a.accept(asip);
 
     readLine();
 
