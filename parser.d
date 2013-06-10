@@ -133,7 +133,6 @@ unittest
 {
     import common, printer;
 
-    auto stdp = new StdOutPrinter;
     errp = new ErrorPrinter(new StdErrPrinter);
     auto sp = new StringPrinter;
     auto ap = new printer.AsiPrinter(sp);
@@ -165,6 +164,4 @@ unittest
     testStr("9223372036854775807", "9223372036854775807");
     testStr("9223372036854775808", "9223372036854775807", EvalStrategy.lax);
     testStr("9223372036854775808", "<error>");
-    
-    stdp.println("All Tests Succeeded");
 }

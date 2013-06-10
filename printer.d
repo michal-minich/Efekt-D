@@ -36,7 +36,7 @@ final class AsiPrinter : AsiVisitor!void
         printer.print("<error");
         if (er.asi)
         {
-            printer.print("");
+            printer.print(" ");
             er.asi.accept(this);
         }
         printer.print(">");

@@ -116,3 +116,45 @@ final class Interpreter : AsiVisitor!Asi
         }
     }
 }
+
+
+unittest
+{
+    import  common, printer, parser;
+
+    errp = new ErrorPrinter(new StdErrPrinter);
+    auto sp = new StringPrinter;
+    auto ap = new printer.AsiPrinter(sp);
+    auto interpreter = new Interpreter;
+
+    void evalTest(dstring code, dstring expected, EvalStrategy es = EvalStrategy.strict)
+    {
+        sp.reset();
+        auto asis = parse(code, es);
+        auto res = interpreter.run(asis, es);
+        if (res)
+        {
+            res.accept(ap);
+            assert(sp.str == expected);
+        }
+        else
+        {
+            assert (expected == "");
+        }
+    }
+
+    evalTest("", "");
+    evalTest("1", "1");
+    evalTest("1+2", "3");
+
+    evalTest("+3", "<error <missing> + 3>");
+    evalTest("+", "<error <missing> + <missing>>");
+    evalTest("3+", "<error 3 + <missing>>");
+
+    evalTest("+3", "3", EvalStrategy.lax);
+    evalTest("+", "0", EvalStrategy.lax);
+    evalTest("3+", "3", EvalStrategy.lax);
+
+    evalTest("9223372036854775808", "<error>");
+    evalTest("9223372036854775808", "9223372036854775807", EvalStrategy.lax);
+}

@@ -2,8 +2,8 @@ error messages:
 	fix: Expression expected before and after operator
 	add: Expression expected after operator
 interpreter - add exception when + over long max
+handle invalid input in interactive
 automated testing
 test for presence of un/expected error messages
-tests for interpreter
-review all trusted, cast and catch
+review all trusted, cast, assert and catch
 	std and err printers are nothrow, should they throw?
