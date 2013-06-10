@@ -1,6 +1,6 @@
 module interpreter;
 
-import utils, ast;
+import utils, common, ast;
 
 @safe nothrow:
 
@@ -22,9 +22,6 @@ Exp plus (Exp op1, Exp op2)
     immutable o2 = sureCast!Int(op2).asLong;
     return new Int(o1 + o2);
 }
-
-
-enum EvalStrategy { strict, lax }
 
 
 final class Interpreter : AsiVisitor!Asi

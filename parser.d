@@ -1,5 +1,6 @@
 module parser;
 
+import std.conv, std.bigint;
 import common, ast;
 
 @safe nothrow:
@@ -14,7 +15,31 @@ string next (string end)
 }
 
 
-Asi[] parse(dstring code)
+@trusted private Exp getIntOrErrFromString(dstring s, EvalStrategy es)
+{
+    try
+    {
+        auto bi = BigInt(s.to!string());
+        if (bi > long.max)
+        {
+            errp.error("Number must be in range 0 - 9'223 372 036'854 775 807");
+            return es == EvalStrategy.strict
+                ? new Err(null)
+                : new Int(s, bi.toLong());
+        }
+        else
+        {
+            return new Int(s, bi.toLong());
+        }
+    }
+    catch (Exception ex)
+    {
+        assert (false, ex.toString());
+    }
+}
+
+
+Asi[] parse(dstring code, EvalStrategy es)
 {
     if (!code.length)
         return null;
@@ -27,7 +52,7 @@ Asi[] parse(dstring code)
     auto asis = new Asi[maxAsis];
 
 
-    nothrow void parseExp()
+    nothrow void parseInt()
     {
         startIx = codeIx;
 
@@ -38,7 +63,7 @@ Asi[] parse(dstring code)
 
         intEnd:
 
-        auto i = new Int(code[startIx .. codeIx]);
+        auto i = getIntOrErrFromString(code[startIx .. codeIx], es);
 
         OpApply opApply;
         if (asiIx)
@@ -52,6 +77,7 @@ Asi[] parse(dstring code)
             ++asiIx;
         }
     }
+
 
     nothrow void parseOp()
     {
@@ -91,7 +117,7 @@ Asi[] parse(dstring code)
 
     if (ch >= '0' && ch <= '9')
     {
-        parseExp();
+        parseInt();
     }
 
     if (codeIx != code.length)
@@ -112,18 +138,17 @@ unittest
     auto sp = new StringPrinter;
     auto ap = new printer.AsiPrinter(sp);
 
-    void testStr(dstring code, dstring asi)
+    void testStr(dstring code, dstring asi, EvalStrategy es = EvalStrategy.strict)
     {
         sp.reset();
-        parse(code)[0].accept(ap);
-        assert(sp.str == asi);
-        
+        parse(code, es)[0].accept(ap);
         //stdp.print(code);
         //stdp.print(" | ");
         //stdp.println(asi);
+        assert(sp.str == asi);
     }
 
-    assert(parse("").length == 0);
+    assert(parse("", EvalStrategy.strict).length == 0);
     testStr("1", "1");
     testStr("123", "123");
     testStr("  123", "123");
@@ -138,7 +163,8 @@ unittest
     testStr("1+", "1 + <missing>");
 
     testStr("9223372036854775807", "9223372036854775807");
-    testStr("9223372036854775808", "9223372036854775807");
+    testStr("9223372036854775808", "9223372036854775807", EvalStrategy.lax);
+    testStr("9223372036854775808", "<error>");
     
     stdp.println("All Tests Succeeded");
 }

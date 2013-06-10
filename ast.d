@@ -1,6 +1,5 @@
 module ast;
 
-import std.conv, std.bigint;
 import common, printer, interpreter;
 
 @safe nothrow:
@@ -83,21 +82,10 @@ final class Int : Exp
     this (long asLong) { this.asLong = asLong; }
 
 
-    @trusted this (dstring asString)
+    this (dstring asString, long asLong)
     {
         this.asString = asString;
-
-        try
-        {
-           auto bi = BigInt(asString.to!string());
-           if (bi > long.max)
-                errp.error("Number must be in range 0 - 9'223 372 036'854 775 807");
-            asLong = bi.toLong();
-        }
-        catch (Exception ex)
-        {
-            assert (false, ex.toString());
-        }
+        this.asLong = asLong;
     }
 }
 

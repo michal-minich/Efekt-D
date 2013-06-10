@@ -71,7 +71,7 @@ final class Interactive
 
     private void runOne (dstring ln)
     {
-        auto asis = parse(ln);
+        auto asis = parse(ln, es);
         auto res = interpreter.run(asis, es);
         if (res)
         {

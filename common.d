@@ -10,6 +10,9 @@ ErrorPrinter errp;
 AsiPrinter asip;
 
 
+enum EvalStrategy { strict, lax }
+
+
 interface IReader
 {
     nothrow:
