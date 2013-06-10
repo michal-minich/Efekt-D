@@ -16,6 +16,7 @@ interface IPrinter
 
     void print (dstring);
     void println (dstring);
+    void println ();
 }
 
 
@@ -25,6 +26,7 @@ final class StdOutPrinter : IPrinter
 
     @trusted void print (dstring s) { dontThrow(write(s)); }
     @trusted void println (dstring s) { dontThrow(writeln(s)); }
+    @trusted void println () { dontThrow(writeln()); }
 }
 
 
@@ -34,6 +36,7 @@ final class StdErrPrinter : IPrinter
 
     @trusted void print (dstring s) { dontThrow(stderr.write(s)); }
     @trusted void println (dstring s) { dontThrow(stderr.writeln(s)); }
+    @trusted void println () { dontThrow(stderr.writeln()); }
 }
 
 
@@ -43,8 +46,9 @@ final class StringPrinter : IPrinter
     dstring str;
 
     void reset () { str = null; }
-    @trusted void print (dstring s) { str ~= s; }
-    @trusted void println (dstring s) { str ~= s ~ '\n'; }
+    void print (dstring s) { str ~= s; }
+    void println (dstring s) { str ~= s ~ '\n'; }
+    void println () { str ~= '\n'; }
 }
 
 

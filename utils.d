@@ -29,3 +29,18 @@ import std.conv;
         assert (false, ex.toString());
     }
 }
+
+
+@trusted B sureCast (B, A) (A a)
+{
+    debug
+    {
+        auto res = cast(B)a;
+        assert(res);
+        return res;
+    }
+    else
+    {
+        return cast(B)cast(void*)a;
+    }
+}

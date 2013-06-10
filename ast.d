@@ -1,7 +1,7 @@
 module ast;
 
 import std.conv, std.bigint;
-import common, printer;
+import common, printer, interpreter;
 
 @safe nothrow:
 
@@ -21,6 +21,7 @@ interface AsiVisitor (R)
 mixin template Acceptors ()
 {
     override void accept (AsiPrinter v) { v.visit(this); }
+    override Asi accept (Interpreter v) { return v.visit(this); }
 }
 
 
@@ -28,6 +29,7 @@ abstract class  Asi
 {
     nothrow:
     void accept (AsiPrinter);
+    Asi accept (Interpreter);
 }
 
 
@@ -76,7 +78,11 @@ final class Int : Exp
 
     dstring asString;
     long asLong;
+
     
+    this (long asLong) { this.asLong = asLong; }
+
+
     @trusted this (dstring asString)
     {
         this.asString = asString;
