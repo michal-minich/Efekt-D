@@ -10,6 +10,13 @@ ErrorPrinter errp;
 AsiPrinter asip;
 
 
+interface IReader
+{
+    nothrow:
+    dstring readln ();
+}
+
+
 interface IPrinter
 {
     nothrow:
@@ -17,6 +24,13 @@ interface IPrinter
     void print (dstring);
     void println (dstring);
     void println ();
+}
+
+
+final class StdInReader : IReader
+{
+    nothrow:
+    @trusted dstring readln () { return dontThrow(std.stdio.readln().toDString()); }
 }
 
 

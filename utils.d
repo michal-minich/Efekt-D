@@ -18,16 +18,15 @@ import std.conv;
 }
 
 
-@trusted toDString (long l)
+@trusted dstring toDString (long l)
 {
-    try
-    {
-        return l.to!dstring();
-    }
-    catch (Exception ex)
-    {
-        assert (false, ex.toString());
-    }
+    return dontThrow(l.to!dstring());
+}
+
+
+@trusted dstring toDString (string s)
+{
+    return dontThrow(s.to!dstring());
 }
 
 
