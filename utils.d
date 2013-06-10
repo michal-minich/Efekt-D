@@ -1,14 +1,28 @@
 module utils;
 
+import std.conv;
 
 @safe nothrow:
 
 
-@trusted void dontThrow (lazy void fn)
+@trusted R dontThrow (R) (lazy R fn)
 {
     try
     {
-        fn();
+        return fn();
+    }
+    catch (Exception ex)
+    {
+        assert (false, ex.toString());
+    }
+}
+
+
+@trusted toDString (long l)
+{
+    try
+    {
+        return l.to!dstring();
     }
     catch (Exception ex)
     {

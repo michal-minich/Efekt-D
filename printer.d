@@ -1,6 +1,6 @@
 module printer;
 
-import common, ast;
+import utils, common, ast;
 
 @safe nothrow:
 
@@ -19,7 +19,7 @@ final class AsiPrinter : AsiVisitor!void
     void visit (Var v)
     {
         printer.print("var ");
-        printer.print(v.text);
+        printer.print(v.name);
         printer.print(" = ");
         v.value.accept(this);
     }
@@ -41,7 +41,7 @@ final class AsiPrinter : AsiVisitor!void
 
     void visit (Int i)
     {
-        printer.print(i.text);
+        printer.print(i.asLong.toDString());
     }
 
 
@@ -49,7 +49,7 @@ final class AsiPrinter : AsiVisitor!void
     {
         opa.op1.accept(this);
         printer.print(" ");
-        printer.print(opa.text);
+        printer.print(opa.op);
         printer.print(" ");
         opa.op2.accept(this);
     }

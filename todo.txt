@@ -1,8 +1,8 @@
 error messages:
 	fix: Expression expected before and after operator
 	add: Expression expected after operator
-validate int max
 interpreter (adding over in max undefined)
 interactive
 automated testing
+test for presence of un/expected error messages
 std and err printers are nothrow, should they throw?

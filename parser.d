@@ -136,6 +136,9 @@ unittest
     testStr("+1", "<missing> + 1");
     testStr("+", "<missing> + <missing>");
     testStr("1+", "1 + <missing>");
+
+    testStr("9223372036854775807", "9223372036854775807");
+    testStr("9223372036854775808", "9223372036854775807");
     
     stdp.println("All Tests Succeeded");
 }

@@ -1,6 +1,7 @@
 module ast;
 
-import printer;
+import std.conv, std.bigint;
+import common, printer;
 
 @safe nothrow:
 
@@ -26,8 +27,6 @@ mixin template Acceptors ()
 abstract class  Asi
 {
     nothrow:
-    dstring text;
-    this (dstring txt) { text = txt; }
     void accept (AsiPrinter);
 }
 
@@ -35,14 +34,12 @@ abstract class  Asi
 abstract class Stm : Asi
 {
     nothrow:
-    this (dstring txt) { super (txt); }
 }
 
 
 abstract class Exp : Asi
 {
     nothrow:
-    this (dstring txt) { super (txt); }
 }
 
 
@@ -50,8 +47,9 @@ class Var : Stm
 {
     nothrow:
     mixin Acceptors!();
+    dstring name;
     Exp value;
-    this (dstring name, Exp value) { super (name); this.value = value; }
+    this (dstring name, Exp value) { this.name = name; this.value = value; }
 }
 
 
@@ -59,7 +57,6 @@ class Missing : Exp
 {
     nothrow:
     mixin Acceptors!();
-    this () { super (null); }
 }
 
 
@@ -68,7 +65,7 @@ class Err : Exp
     nothrow:
     mixin Acceptors!();
     Asi asi;
-    this (Asi asi) { super (null); this.asi = asi; }
+    this (Asi asi) { this.asi = asi; }
 }
 
 
@@ -76,7 +73,26 @@ final class Int : Exp
 {
     nothrow:
     mixin Acceptors!();
-    this (dstring txt) { super (txt); }
+
+    dstring asString;
+    long asLong;
+    
+    @trusted this (dstring asString)
+    {
+        this.asString = asString;
+
+        try
+        {
+           auto bi = BigInt(asString.to!string());
+           if (bi > long.max)
+                errp.error("Number must be in range 0 - 9'223 372 036'854 775 807");
+            asLong = bi.toLong();
+        }
+        catch (Exception ex)
+        {
+            assert (false, ex.toString());
+        }
+    }
 }
 
 
@@ -86,12 +102,13 @@ final class OpApply : Exp
 
     mixin Acceptors!();
 
+    dstring op;
     Exp op1;
     Exp op2;
     
-    this (dstring txt, Exp op1, Exp op2)
+    this (dstring op, Exp op1, Exp op2)
     {
-        super (txt);
+        this.op = op;
         this.op1 = op1;
         this.op2 = op2;
     }
