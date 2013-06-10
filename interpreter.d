@@ -24,14 +24,22 @@ Exp plus (Exp op1, Exp op2)
 }
 
 
+enum EvalStrategy { strict, lax }
+
+
 final class Interpreter : AsiVisitor!Asi
 {
     nothrow:
 
-    Asi run (Asi[] asis)
+    private EvalStrategy es;
+
+
+    Asi run (Asi[] asis, EvalStrategy es)
     {
         if (!asis.length)
             return null;
+
+        this.es = es;
 
         assert (asis.length == 1);
 
@@ -63,6 +71,51 @@ final class Interpreter : AsiVisitor!Asi
 
     Exp visit (OpApply opa)
     {
-        return ops[opa.op](opa.op1, opa.op2);
+        if (es == EvalStrategy.strict)
+        {
+            Asi x = cast(Missing)opa.op1;
+            if (x)
+                return new Err(opa);
+
+            x = cast(Err)opa.op1;
+            if (x)
+                return new Err(opa);
+
+            x = cast(Missing)opa.op2;
+            if (x)
+                return new Err(opa);
+
+            x = cast(Err)opa.op2;
+            if (x)
+                return new Err(opa);
+
+            return ops[opa.op](opa.op1, opa.op2);
+        }
+        else
+        {
+            auto o1 = opa.op1;
+            auto o2 = opa.op2;
+            Asi x = cast(Missing)opa.op1;
+            if (x)
+                o1 = new Int(0);
+            else
+            {
+                x = cast(Err)opa.op1;
+                if (x)
+                    o1 = new Int(0);
+            }
+
+            x = cast(Missing)opa.op2;
+            if (x)
+                o2 = new Int(0);
+            else
+            {
+                x = cast(Err)opa.op2;
+                if (x)
+                    o2 = new Int(0);
+            }
+
+            return ops[opa.op](o1, o2);
+        }
     }
 }

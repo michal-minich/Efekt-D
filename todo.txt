@@ -2,7 +2,6 @@ error messages:
 	fix: Expression expected before and after operator
 	add: Expression expected after operator
 interpreter - add exception when + over long max
-interactive
 automated testing
 test for presence of un/expected error messages
 tests for interpreter
