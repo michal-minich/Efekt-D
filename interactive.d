@@ -1,6 +1,6 @@
 module interactive;
 
-import common, parser, printer, exceptions, interpreter;
+import utils, common, parser, printer, exceptions, interpreter;
 
 @safe nothrow:
 
@@ -107,6 +107,6 @@ final class Interactive
     void setEvalStrategy (EvalStrategy es)
     {
         this.es = es;
-        printer.println("Current evaluation strategy is "d ~ es ~ ".");
+        printer.println("Current evaluation strategy is "d ~ es.toDString() ~ ".");
     }
 }
