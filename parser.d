@@ -14,6 +14,18 @@ string next (string end)
     ch = code[codeIx];";
 }
 
+final class Parser
+{
+nothrow:
+
+bool hasError;
+
+
+T newAsi (T : Asi, Args...) (Args args)
+{
+    return new T(args);
+}
+
 
 @trusted private Exp getIntOrErrFromString(dstring s, EvalStrategy es)
 {
@@ -23,13 +35,14 @@ string next (string end)
         if (bi > long.max)
         {
             remark.parser.numberNotInRange();
-            return es == EvalStrategy.strict
-                ? new Err(null)
-                : new Int(s, bi.toLong());
+            hasError = true;
+            return es == EvalStrategy.lax
+                ? newAsi!Int(s, bi.toLong())
+                : newAsi!Err(null);
         }
         else
         {
-            return new Int(s, bi.toLong());
+            return newAsi!Int(s, bi.toLong());
         }
     }
     catch (Exception ex)
@@ -44,6 +57,7 @@ Asi[] parse(dstring code, EvalStrategy es)
     if (!code.length)
         return null;
 
+    hasError = false;
     enum maxAsis = 1000;
     size_t codeIx;
     size_t startIx;
@@ -73,8 +87,7 @@ Asi[] parse(dstring code, EvalStrategy es)
             opApply.op2 = i;
         else
         {
-            asis[asiIx] = i;
-            ++asiIx;
+            asis[asiIx++] = i;
         }
     }
 
@@ -90,18 +103,18 @@ Asi[] parse(dstring code, EvalStrategy es)
             if (!op1)
             {
                 remark.parser.expExpectedBeforeOpButStmFound();
-                op1 = new Err(asis[opaIx]);
+                op1 = newAsi!Err(asis[opaIx]);
             }
         }
         else
         {
             opaIx = 0;
-            op1 = new Missing;
+            op1 = newAsi!Missing();
             remark.parser.expExpectedBeforeOp();
             ++asiIx;
         }
 
-        asis[opaIx] = new OpApply(code[codeIx .. codeIx + 1], op1, new Missing);
+        asis[opaIx] = newAsi!OpApply(code[codeIx .. codeIx + 1], op1, newAsi!Missing());
     }
 
     next:
@@ -125,9 +138,25 @@ Asi[] parse(dstring code, EvalStrategy es)
 
     end:
 
+    auto opa = cast(OpApply)asis[0];
+    if (opa)
+    {
+        auto o1 = cast(Missing)opa.op1;
+        if (o1)
+        {
+            hasError = true;
+        }
+
+        auto o2 = cast(Missing)opa.op1;
+        if (o2)
+        {
+            hasError = true;
+        }
+    }
+
     return asis[0 .. asiIx];
 }
-
+}
 
 unittest
 {
@@ -137,13 +166,14 @@ unittest
     remark = new Remarker(rc);
     auto sp = new StringPrinter;
     auto ap = new printer.AsiPrinter(sp);
+    auto p = new Parser;
 
     void testStr(dstring code, dstring asi, EvalStrategy es = EvalStrategy.strict)
     {
         assert (!rc.remarks.length, "Previous test has unverified remarks");
 
         sp.clear();
-        parse(code, es)[0].accept(ap);
+        p.parse(code, es)[0].accept(ap);
         //stdp.print(code);
         //stdp.print(" | ");
         //stdp.println(asi);
@@ -151,11 +181,11 @@ unittest
     }
 
 
-    void verifyRemarks(dstring[] names ...) { common.verifyRemarks(rc, names); }
+    void verifyRemarks(dstring[] names ...) { common.verifyRemarks(p.hasError, rc, names); }
     void ignoreRemarks() { rc.clear(); }
 
 
-    assert(parse("", EvalStrategy.strict).length == 0);
+    assert(p.parse("", EvalStrategy.strict).length == 0);
     testStr("1", "1");
     testStr("123", "123");
     testStr("  123", "123");

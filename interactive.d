@@ -14,6 +14,7 @@ final class Interactive
     AsiPrinter asip;
     Interpreter interpreter;
     EvalStrategy es;
+    Parser parser;
 
     this (IReader reader, IPrinter printer, AsiPrinter asip)
     {
@@ -21,6 +22,7 @@ final class Interactive
         this.printer = printer;
         this.asip = asip;
         interpreter =  new Interpreter(new Thrower(new ExceptionPrinter(printer)));
+        parser = new Parser;
         printBanner();
     }
 
@@ -75,7 +77,8 @@ final class Interactive
 
     private void runOne (dstring ln)
     {
-        auto asis = parse(ln, es);
+        auto asis = parser.parse(ln, es);
+
         auto res = interpreter.run(asis, es);
         if (res)
         {

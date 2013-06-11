@@ -69,12 +69,24 @@ final class Interpreter : AsiVisitor!Asi
 
     Missing visit (Missing m)
     {
+        if (es == EvalStrategy.throwing)
+        {
+            thrower.cannotEvalErrorOrMissing();
+            return null;
+        }
+
         return m;
     }
 
 
     Err visit (Err er)
     {
+        if (es == EvalStrategy.throwing)
+        {
+            thrower.cannotEvalErrorOrMissing();
+            return null;
+        }
+
         return er;
     }
 
@@ -91,9 +103,19 @@ final class Interpreter : AsiVisitor!Asi
                 x = cast(Missing)opa.op2;
             if (x)
             {
-                thrower.typeMismatch();
+                thrower.cannotEvalErrorOrMissing();
                 return null;
             }
+
+            x = cast(Err)opa.op1;
+            if (!x)
+                x = cast(Err)opa.op2;
+            if (x)
+            {
+                thrower.cannotEvalErrorOrMissing();
+                return null;
+            }
+
             else
                 return ops[opa.op](es, thrower, opa.op1, opa.op2);
         }
@@ -157,6 +179,7 @@ unittest
     auto ap = new printer.AsiPrinter(sp);
     auto ec = new ExceptionCollector;
     auto interpreter = new Interpreter(new Thrower(ec));
+    auto p = new Parser;
 
     void evalTest(dstring code, dstring expected, EvalStrategy es = EvalStrategy.throwing)
     {
@@ -164,7 +187,11 @@ unittest
         assert (!ec.exceptions.length, "Previous test has unverified exceptions");
 
         sp.clear();
-        auto asis = parse(code, es);
+        auto asis = p.parse(code, es);
+
+        if (p.hasError && EvalStrategy.throwing)
+            assert (expected is null);
+
         auto res = interpreter.run(asis, es);
         if (res)
         {
@@ -178,7 +205,7 @@ unittest
     }
 
 
-    void verifyRemarks(dstring[] names ...) { common.verifyRemarks(rc, names); }
+    void verifyRemarks(dstring[] names ...) { common.verifyRemarks(p.hasError, rc, names); }
     void ignoreRemarks() { rc.clear(); }
     void verifyExceptions(dstring[] names ...) { common.verifyExceptions(ec, names); }
     void ignoreExceptions() { ec.clear(); }
@@ -191,17 +218,17 @@ unittest
 
     evalTest("+3", null);
     verifyRemarks("expExpectedBeforeOp");
-    verifyExceptions("typeMismatch");
+    verifyExceptions("cannotEvalErrorOrMissing");
 
     evalTest("+", null);
     //verifyRemarks("opWithoutOperands");
     ignoreRemarks();
-    verifyExceptions("typeMismatch");
+    verifyExceptions("cannotEvalErrorOrMissing");
 
     evalTest("3+", null);
     //verifyRemarks("expExpecteAfterOp");
     ignoreRemarks();
-    verifyExceptions("typeMismatch");
+    verifyExceptions("cannotEvalErrorOrMissing");
 
 
     evalTest("+3", "<error <missing> + 3>", EvalStrategy.strict);

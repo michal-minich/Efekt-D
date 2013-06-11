@@ -62,9 +62,9 @@ final class Thrower
     }
 
 
-    void typeMismatch()
+    void cannotEvalErrorOrMissing()
     {
-        e(__FUNCTION__, "Operation expected different type");
+        e(__FUNCTION__, "Expression or its part has and error or is missing");
     }
 
 

@@ -68,8 +68,12 @@ final class StringPrinter : IPrinter
 }
 
 
-version (unittest) void verifyRemarks(RemarkCollector rc, dstring[] names ...)
+version (unittest) void verifyRemarks(
+    bool hasError, RemarkCollector rc, dstring[] names ...)
 {
+    if (hasError)
+        assert (names.length, "Parser is expected to have some remarks when it has error");
+    
     assert(rc.remarks.length == names.length);
     foreach (ix, n; names)
         assert (rc.remarks[ix].name == n);
