@@ -110,7 +110,6 @@ Asi[] parse(dstring code, EvalStrategy es)
         {
             opaIx = 0;
             op1 = newAsi!Missing();
-            remark.parser.expExpectedBeforeOp();
             ++asiIx;
         }
 
@@ -142,16 +141,25 @@ Asi[] parse(dstring code, EvalStrategy es)
     if (opa)
     {
         auto o1 = cast(Missing)opa.op1;
-        if (o1)
+        auto o2 = cast(Missing)opa.op2;
+
+        if (o1 && o2)
         {
             hasError = true;
+            remark.parser.opWithoutOperands();
+        }
+        else if (o1)
+        {
+            hasError = true;
+            remark.parser.expExpectedBeforeOp();
+        }
+        else if (o2)
+        {
+            hasError = true;
+            remark.parser.expExpectedAfterOp();
         }
 
-        auto o2 = cast(Missing)opa.op1;
-        if (o2)
-        {
-            hasError = true;
-        }
+
     }
 
     return asis[0 .. asiIx];

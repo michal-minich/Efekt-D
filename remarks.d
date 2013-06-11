@@ -89,10 +89,10 @@ final class ParserRemarks
     }
 
 
-    void expExpecteAfterOp ()
+    void expExpectedAfterOp ()
     {
         r(RemarkSeverity.error, __FUNCTION__, 
-            "");
+            "Expression expected after operator");
     }
 
     
@@ -106,14 +106,14 @@ final class ParserRemarks
     void expExpectedAfterOpButStmFound ()
     {
         r(RemarkSeverity.error, __FUNCTION__, 
-            "");
+            "Expression expected after operator, not statement");
     }
 
 
     void opWithoutOperands ()
     {
         r(RemarkSeverity.error, __FUNCTION__, 
-            "");
+            "Expression expected before and after operator");
     }
 
 

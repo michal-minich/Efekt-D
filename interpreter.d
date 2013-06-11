@@ -221,13 +221,11 @@ unittest
     verifyExceptions("cannotEvalErrorOrMissing");
 
     evalTest("+", null);
-    //verifyRemarks("opWithoutOperands");
-    ignoreRemarks();
+    verifyRemarks("opWithoutOperands");
     verifyExceptions("cannotEvalErrorOrMissing");
 
     evalTest("3+", null);
-    //verifyRemarks("expExpecteAfterOp");
-    ignoreRemarks();
+    verifyRemarks("expExpectedAfterOp");
     verifyExceptions("cannotEvalErrorOrMissing");
 
 
@@ -235,24 +233,20 @@ unittest
     verifyRemarks("expExpectedBeforeOp");
 
     evalTest("+", "<error <missing> + <missing>>", EvalStrategy.strict);
-    //verifyRemarks("opWithoutOperands");
-    ignoreRemarks();
+    verifyRemarks("opWithoutOperands");
 
     evalTest("3+", "<error 3 + <missing>>", EvalStrategy.strict);
-    //verifyRemarks("expExpecteAfterOp");
-    ignoreRemarks();
+    verifyRemarks("expExpectedAfterOp");
 
 
     evalTest("+3", "3", EvalStrategy.lax);
     verifyRemarks("expExpectedBeforeOp");
 
     evalTest("+", "0", EvalStrategy.lax);
-    //verifyRemarks("opWithoutOperands");
-    ignoreRemarks();
+    verifyRemarks("opWithoutOperands");
 
     evalTest("3+", "3", EvalStrategy.lax);
-    //verifyRemarks("expExpecteAfterOp");
-    ignoreRemarks();
+    verifyRemarks("expExpectedAfterOp");
     
 
     evalTest("9223372036854775808", "<error>", EvalStrategy.strict);
