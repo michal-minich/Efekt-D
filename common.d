@@ -1,12 +1,11 @@
 module common;
 
 import std.stdio;
-import utils, common, printer;
+import utils, common, printer, remarks;
 
 @safe nothrow:
 
-
-ErrorPrinter errp;
+Remarker remark;
 AsiPrinter asip;
 
 
@@ -62,23 +61,8 @@ final class StringPrinter : IPrinter
     nothrow:
     dstring str;
 
-    void reset () { str = null; }
+    void clear () { str = null; }
     void print (dstring s) { str ~= s; }
     void println (dstring s) { str ~= s ~ '\n'; }
     void println () { str ~= '\n'; }
-}
-
-
-final class ErrorPrinter
-{
-    nothrow:
-
-    IPrinter printer;
-
-    this (IPrinter printer) { this.printer = printer; }
-
-    void notice (dstring s) { printer.println ("Notice: " ~ s); }
-    void warn (dstring s) { printer.println ("Warning: " ~ s); }
-    void error (dstring s) { printer.println ("Error: " ~ s); }
-    void blocker (dstring s) { printer.println ("Blocker: " ~ s); }
 }

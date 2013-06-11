@@ -18,15 +18,17 @@ import std.conv;
 }
 
 
-@trusted dstring toDString (long l)
+@trusted dstring toDString (T) (T a) 
+    if (is (T == enum) || is (T == string)||is (T == long))
 {
-    return dontThrow(l.to!dstring());
-}
-
-
-@trusted dstring toDString (string s)
-{
-    return dontThrow(s.to!dstring());
+    try
+    {
+        return a.to!dstring();
+    }
+    catch (Exception ex)
+    {
+        assert (false, ex.toString());
+    }
 }
 
 
@@ -42,4 +44,20 @@ import std.conv;
     {
         return cast(B)cast(void*)a;
     }
+}
+
+
+size_t lastIndexOf (string items, char item)
+{
+    foreach_reverse (ix, i; items)
+        if (i == item)
+            return ix;
+
+    assert (false, "item '" ~ item ~ "' not found.");
+}
+
+
+string lastItemInList (string list, char separator)
+{
+    return list[list.lastIndexOf(separator) + 1 .. $];
 }

@@ -1,14 +1,14 @@
 module main;
 
 import std.stdio;
-import utils, common, printer, parser, interpreter, interactive;
+import utils, common, printer, remarks, parser, interpreter, interactive;
 
 @safe nothrow:
 
 
 int main(string[] argv)
 {
-    errp = new ErrorPrinter(new StdErrPrinter);
+    remark = new Remarker(new RemarkPrinter(new StdErrPrinter));
     auto stdp = new StdOutPrinter;
 
     version (unittest)

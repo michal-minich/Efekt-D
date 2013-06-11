@@ -1,6 +1,6 @@
 module interpreter;
 
-import utils, common, ast;
+import utils, common, ast, remarks;
 
 @safe nothrow:
 
@@ -129,14 +129,17 @@ unittest
 {
     import common, printer, parser;
 
-    errp = new ErrorPrinter(new StdErrPrinter);
+    auto rc = new RemarkCollector;
+    remark = new Remarker(rc);
     auto sp = new StringPrinter;
     auto ap = new printer.AsiPrinter(sp);
     auto interpreter = new Interpreter;
 
     void evalTest(dstring code, dstring expected, EvalStrategy es = EvalStrategy.strict)
     {
-        sp.reset();
+        //assert (!rc.remarks.length, "Previous test has unverified remarks");
+        rc.clear();
+        sp.clear();
         auto asis = parse(code, es);
         auto res = interpreter.run(asis, es);
         if (res)
@@ -150,19 +153,46 @@ unittest
         }
     }
 
+
+    void verifyRemarks(dstring[] names ...)
+    {
+        assert(rc.remarks.length == names.length);
+        foreach (ix, n; names)
+            assert (rc.remarks[ix].name == n);
+
+        rc.clear();
+        assert(!rc.remarks.length);
+    }
+
+
     evalTest("", "");
     evalTest(" \t", "");
     evalTest("1", "1");
     evalTest("1+2", "3");
 
     evalTest("+3", "<error <missing> + 3>");
+    verifyRemarks("expExpectedBeforeOp");
+
     evalTest("+", "<error <missing> + <missing>>");
+    //verifyRemarks("opWithoutOperands");
+
     evalTest("3+", "<error 3 + <missing>>");
+    //verifyRemarks("expExpecteAfterOp");
+
 
     evalTest("+3", "3", EvalStrategy.lax);
+    verifyRemarks("expExpectedBeforeOp");
+
     evalTest("+", "0", EvalStrategy.lax);
+    //verifyRemarks("opWithoutOperands");
+
     evalTest("3+", "3", EvalStrategy.lax);
+    //verifyRemarks("expExpecteAfterOp");
+
 
     evalTest("9223372036854775808", "<error>");
+    verifyRemarks("numberNotInRange");
+
     evalTest("9223372036854775808", "9223372036854775807", EvalStrategy.lax);
+    verifyRemarks("numberNotInRange");
 }

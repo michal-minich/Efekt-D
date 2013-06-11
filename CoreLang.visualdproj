@@ -196,6 +196,7 @@
   <File path="main.d" />
   <File path="parser.d" />
   <File path="printer.d" />
+  <File path="remarks.d" />
   <File path="todo.txt" />
   <File path="utils.d" />
  </Folder>

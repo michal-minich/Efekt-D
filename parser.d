@@ -1,7 +1,7 @@
 module parser;
 
 import std.conv, std.bigint;
-import common, ast;
+import common, ast, remarks;
 
 @safe nothrow:
 
@@ -22,7 +22,7 @@ string next (string end)
         auto bi = BigInt(s.to!string());
         if (bi > long.max)
         {
-            errp.error("Number must be in range 0 - 9'223 372 036'854 775 807");
+            remark.parser.numberNotInRange();
             return es == EvalStrategy.strict
                 ? new Err(null)
                 : new Int(s, bi.toLong());
@@ -89,7 +89,7 @@ Asi[] parse(dstring code, EvalStrategy es)
             op1 = cast(Exp)asis[opaIx];
             if (!op1)
             {
-                errp.error("Expression expected before operator, not statement");
+                remark.parser.expExpectedBeforeOpButStmFound();
                 op1 = new Err(asis[opaIx]);
             }
         }
@@ -97,7 +97,7 @@ Asi[] parse(dstring code, EvalStrategy es)
         {
             opaIx = 0;
             op1 = new Missing;
-            errp.error("Expression expected before operator");
+            remark.parser.expExpectedBeforeOp();
             ++asiIx;
         }
 
@@ -133,13 +133,15 @@ unittest
 {
     import common, printer;
 
-    errp = new ErrorPrinter(new StdErrPrinter);
+    auto rc = new RemarkCollector;
+    remark = new Remarker(rc);
     auto sp = new StringPrinter;
     auto ap = new printer.AsiPrinter(sp);
 
     void testStr(dstring code, dstring asi, EvalStrategy es = EvalStrategy.strict)
     {
-        sp.reset();
+        sp.clear();
+        rc.clear();
         parse(code, es)[0].accept(ap);
         //stdp.print(code);
         //stdp.print(" | ");
