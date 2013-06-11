@@ -127,9 +127,16 @@ Asi[] parse(dstring code, EvalStrategy es)
         mixin (next("end"));
     }
 
-    if (ch >= '0' && ch <= '9')
+    else if (ch >= '0' && ch <= '9')
     {
         parseInt();
+    }
+
+    else
+    {
+        hasError = true;
+        remark.parser.unexpectedChar();
+        goto end;
     }
 
     if (codeIx != code.length)
@@ -158,8 +165,6 @@ Asi[] parse(dstring code, EvalStrategy es)
             hasError = true;
             remark.parser.expExpectedAfterOp();
         }
-
-
     }
 
     return asis[0 .. asiIx];
