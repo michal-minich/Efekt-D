@@ -5,7 +5,7 @@ import utils, common, ast;
 @safe nothrow:
 
 
-alias opFn = Exp function (Exp, Exp);
+alias opFn = Exp function (EvalStrategy, Exp, Exp);
 
 private opFn[dstring] ops;
 
@@ -16,11 +16,18 @@ static this ()
 }
 
 
-Exp plus (Exp op1, Exp op2)
+@trusted Exp plus (EvalStrategy es, Exp op1, Exp op2)
 {
     immutable o1 = sureCast!Int(op1).asLong;
     immutable o2 = sureCast!Int(op2).asLong;
-    return new Int(o1 + o2);
+    auto res = o1 + o2;
+    asm { jo overflowed; }
+    return new Int(res);
+    overflowed:
+    if (es == EvalStrategy.strict)
+        return new Int(res);
+    else
+        return new Int(long.max);
 }
 
 
@@ -86,7 +93,7 @@ final class Interpreter : AsiVisitor!Asi
             if (x)
                 return new Err(opa);
 
-            return ops[opa.op](opa.op1, opa.op2);
+            return ops[opa.op](es, opa.op1, opa.op2);
         }
         else
         {
@@ -112,7 +119,7 @@ final class Interpreter : AsiVisitor!Asi
                     o2 = new Int(0);
             }
 
-            return ops[opa.op](o1, o2);
+            return ops[opa.op](es, o1, o2);
         }
     }
 }
@@ -120,7 +127,7 @@ final class Interpreter : AsiVisitor!Asi
 
 unittest
 {
-    import  common, printer, parser;
+    import common, printer, parser;
 
     errp = new ErrorPrinter(new StdErrPrinter);
     auto sp = new StringPrinter;
@@ -144,6 +151,7 @@ unittest
     }
 
     evalTest("", "");
+    evalTest(" \t", "");
     evalTest("1", "1");
     evalTest("1+2", "3");
 
