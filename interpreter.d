@@ -84,7 +84,20 @@ final class Interpreter : AsiVisitor!Asi
 
     Exp visit (OpApply opa)
     {
-        if (es == EvalStrategy.strict)
+        if (es == EvalStrategy.throwing)
+        {
+            Asi x = cast(Missing)opa.op1;
+            if (!x)
+                x = cast(Missing)opa.op2;
+            if (x)
+            {
+                thrower.typeMismatch();
+                return null;
+            }
+            else
+                return ops[opa.op](es, thrower, opa.op1, opa.op2);
+        }
+        else if (es == EvalStrategy.strict)
         {
             Asi x = cast(Missing)opa.op1;
             if (x)
@@ -145,7 +158,7 @@ unittest
     auto ec = new ExceptionCollector;
     auto interpreter = new Interpreter(new Thrower(ec));
 
-    void evalTest(dstring code, dstring expected, EvalStrategy es = EvalStrategy.strict)
+    void evalTest(dstring code, dstring expected, EvalStrategy es = EvalStrategy.throwing)
     {
         assert (!rc.remarks.length, "Previous test has unverified remarks");
         assert (!ec.exceptions.length, "Previous test has unverified exceptions");
@@ -176,14 +189,29 @@ unittest
     evalTest("1", "1");
     evalTest("1+2", "3");
 
-    evalTest("+3", "<error <missing> + 3>");
+    evalTest("+3", null);
+    verifyRemarks("expExpectedBeforeOp");
+    verifyExceptions("typeMismatch");
+
+    evalTest("+", null);
+    //verifyRemarks("opWithoutOperands");
+    ignoreRemarks();
+    verifyExceptions("typeMismatch");
+
+    evalTest("3+", null);
+    //verifyRemarks("expExpecteAfterOp");
+    ignoreRemarks();
+    verifyExceptions("typeMismatch");
+
+
+    evalTest("+3", "<error <missing> + 3>", EvalStrategy.strict);
     verifyRemarks("expExpectedBeforeOp");
 
-    evalTest("+", "<error <missing> + <missing>>");
+    evalTest("+", "<error <missing> + <missing>>", EvalStrategy.strict);
     //verifyRemarks("opWithoutOperands");
     ignoreRemarks();
 
-    evalTest("3+", "<error 3 + <missing>>");
+    evalTest("3+", "<error 3 + <missing>>", EvalStrategy.strict);
     //verifyRemarks("expExpecteAfterOp");
     ignoreRemarks();
 

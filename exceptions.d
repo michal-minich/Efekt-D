@@ -62,6 +62,12 @@ final class Thrower
     }
 
 
+    void typeMismatch()
+    {
+        e(__FUNCTION__, "Operation expected different type");
+    }
+
+
     void integerOwerflow()
     {
         e(__FUNCTION__, "Integer overflowed over maximum value");
