@@ -113,7 +113,7 @@ static string name()
 	}
 }
 
-unittest
+version (TerminalUnittest) unittest
 {
 	version(Posix)
 	{
@@ -144,7 +144,7 @@ bool hasColors()
 	}
 }
 
-unittest
+version (TerminalUnittest) unittest
 {
 	// test color support here
 	assert(hasColors == true);
@@ -177,7 +177,7 @@ void writecf(T...)(in Color color, T args)
 	writef(args);
 }
 
-unittest
+version (TerminalUnittest) unittest
 {
 	foreach (color; __traits(allMembers, Color))
 		writecf(mixin("Color." ~ color), "%s ", color);
@@ -191,7 +191,7 @@ void writecfln(T...)(in Color color, T args)
 	writefln(args);
 }
 
-unittest
+version (TerminalUnittest) unittest
 {
 	foreach (color; __traits(allMembers, Color))
 		writecf(mixin("Color." ~ color), "%s ", color);
@@ -205,7 +205,7 @@ void writec(T...)(in Color color, T args)
 	write(args);
 }
 
-unittest
+version (TerminalUnittest) unittest
 {
 	foreach (color; __traits(allMembers, Color))
 		writecf(mixin("Color." ~ color), "%s ", color);
@@ -219,7 +219,7 @@ void writecln(T...)(in Color color, T args)
 	writeln(args);
 }
 
-unittest
+version (TerminalUnittest) unittest
 {
 	foreach (color; __traits(allMembers, Color))
 		writecf(mixin("Color." ~ color), "%s ", color);
@@ -359,7 +359,7 @@ struct Terminal
 		}
 	}
 
-	unittest
+	version (TerminalUnittest) unittest
 	{
 		write("Foreground: ");
 		foreach (color; __traits(allMembers, Color))
@@ -402,7 +402,7 @@ struct Terminal
 		}
 	}
 
-	unittest
+	version (TerminalUnittest) unittest
 	{
 		write("Background: ");
 		foreach (color; __traits(allMembers, Color))
@@ -415,7 +415,7 @@ struct Terminal
 		writeln();
 	}
 
-	unittest
+	version (TerminalUnittest) unittest
 	{
 		writeln("Background\\Foreground:");
 		foreach (backgroundColor; __traits(allMembers, Color))
@@ -447,7 +447,7 @@ struct Terminal
 		setFace(Capability.boldFace, on);
 	}
 
-	unittest
+	version (TerminalUnittest) unittest
 	{
 		stdout.bold = true;
 		write("BOLD ");
@@ -495,7 +495,7 @@ struct Terminal
 		setFace(Capability.blinkFace, on);
 	}
 
-	unittest
+	version (TerminalUnittest) unittest
 	{
 		stdout.blink = true;
 		write("BLINK");
@@ -511,7 +511,7 @@ struct Terminal
 		setFace(Capability.reverseFace, on);
 	}
 
-	unittest
+	version (TerminalUnittest) unittest
 	{
 		stdout.reverse = true;
 		write("REVERSE");
@@ -528,7 +528,7 @@ struct Terminal
 		setFace(Capability.underlineFace, on);
 	}
 
-	unittest
+	version (TerminalUnittest) unittest
 	{
 		stdout.underline = true;
 		write("UNDERLINE");
@@ -571,11 +571,11 @@ struct Terminal
 		// may effect color on stdout as well if stderr is forwarded to stdout
 		extern(C) static int putcharcout(int c)
 		{
-			return fputc(c, std.stdio.stdout.getFP);
+			return fputc(c, std.stdio.stdout.getFP());
 		}
 		extern(C) static int putcharcerr(int c)
 		{
-			return fputc(c, std.stdio.stderr.getFP);
+			return fputc(c, std.stdio.stderr.getFP());
 		}
 
 		version(Posix)
@@ -647,6 +647,3 @@ struct Terminal
 	}
 }
 
-void main()
-{
-}

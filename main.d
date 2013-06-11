@@ -1,14 +1,14 @@
 module main;
 
 import std.stdio;
-import utils, common, printer, remarks, parser, interpreter, interactive;
+import utils, common, printer, remarks, exceptions, parser, interpreter, interactive;
 
 @safe nothrow:
 
 
 int main(string[] argv)
 {
-    remark = new Remarker(new RemarkPrinter(new StdErrPrinter));
+    remark = new Remarker(new RemarkPrinter(new StdErrPrinter(Color.yellow)));
     auto stdp = new StdOutPrinter;
 
     version (unittest)
@@ -16,7 +16,8 @@ int main(string[] argv)
 
     auto interactive = new Interactive(
          new StdInReader,
-         stdp, 
+         stdp,
+         new ExceptionPrinter(new StdErrPrinter(Color.red, true)),
          new AsiPrinter(stdp));
 
     interactive.run();

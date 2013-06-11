@@ -189,6 +189,9 @@
   <filesToClean>*.obj;*.cmd;*.build;*.json;*.dep</filesToClean>
  </Config>
  <Folder name="CoreLang">
+  <Folder name="lib">
+   <File path="lib\terminal.d" />
+  </Folder>
   <File path="ast.d" />
   <File path="common.d" />
   <File path="exceptions.d" />
