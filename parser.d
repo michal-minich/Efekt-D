@@ -140,14 +140,25 @@ unittest
 
     void testStr(dstring code, dstring asi, EvalStrategy es = EvalStrategy.strict)
     {
+        assert (!rc.remarks.length, "Previous test has unverified remarks");
+
         sp.clear();
-        rc.clear();
         parse(code, es)[0].accept(ap);
         //stdp.print(code);
         //stdp.print(" | ");
         //stdp.println(asi);
         assert(sp.str == asi);
     }
+
+
+    void verifyRemarks(dstring[] names ...)
+    {
+        common.verifyRemarks(rc, names);
+    }
+    
+
+    void ignoreRemarks() { rc.clear(); }
+
 
     assert(parse("", EvalStrategy.strict).length == 0);
     testStr("1", "1");
@@ -159,11 +170,23 @@ unittest
     testStr("1\t", "1");
     testStr("\t1\t", "1");
 
+
     testStr("+1", "<missing> + 1");
+    verifyRemarks("expExpectedBeforeOp");
+
     testStr("+", "<missing> + <missing>");
+    //verifyRemarks("opWithoutOperands");
+    ignoreRemarks();
+
     testStr("1+", "1 + <missing>");
+    //verifyRemarks("expExpecteAfterOp");
+    ignoreRemarks();
+
 
     testStr("9223372036854775807", "9223372036854775807");
     testStr("9223372036854775808", "9223372036854775807", EvalStrategy.lax);
+    verifyRemarks("numberNotInRange");
+
     testStr("9223372036854775808", "<error>");
+    verifyRemarks("numberNotInRange");
 }

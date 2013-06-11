@@ -66,3 +66,14 @@ final class StringPrinter : IPrinter
     void println (dstring s) { str ~= s ~ '\n'; }
     void println () { str ~= '\n'; }
 }
+
+
+version (unittest) void verifyRemarks(RemarkCollector rc, dstring[] names ...)
+{
+    assert(rc.remarks.length == names.length);
+    foreach (ix, n; names)
+        assert (rc.remarks[ix].name == n);
+
+    rc.clear();
+    assert(!rc.remarks.length);
+}
