@@ -1,11 +1,11 @@
 module interpreter;
 
-import utils, common, ast, remarks;
+import utils, common, ast, remarks, exceptions;
 
 @safe nothrow:
 
 
-alias opFn = Exp function (EvalStrategy, Exp, Exp);
+alias opFn = Exp function (EvalStrategy, Thrower, Exp, Exp);
 
 private opFn[dstring] ops;
 
@@ -16,7 +16,7 @@ static this ()
 }
 
 
-@trusted Exp plus (EvalStrategy es, Exp op1, Exp op2)
+@trusted Exp plus (EvalStrategy es, Thrower th, Exp op1, Exp op2)
 {
     immutable o1 = sureCast!Int(op1).asLong;
     immutable o2 = sureCast!Int(op2).asLong;
@@ -24,7 +24,12 @@ static this ()
     asm { jo overflowed; }
     return new Int(res);
     overflowed:
-    if (es == EvalStrategy.strict)
+    if (es == EvalStrategy.throwing)
+    {
+        th.integerOwerflow();
+        return null;
+    }
+    else if (es == EvalStrategy.strict)
         return new Int(res);
     else
         return new Int(long.max);
@@ -36,6 +41,10 @@ final class Interpreter : AsiVisitor!Asi
     nothrow:
 
     private EvalStrategy es;
+    private Thrower thrower;
+
+
+    this (Thrower thrower) { this.thrower = thrower; }
 
 
     Asi run (Asi[] asis, EvalStrategy es)
@@ -93,7 +102,7 @@ final class Interpreter : AsiVisitor!Asi
             if (x)
                 return new Err(opa);
 
-            return ops[opa.op](es, opa.op1, opa.op2);
+            return ops[opa.op](es, thrower, opa.op1, opa.op2);
         }
         else
         {
@@ -119,7 +128,7 @@ final class Interpreter : AsiVisitor!Asi
                     o2 = new Int(0);
             }
 
-            return ops[opa.op](es, o1, o2);
+            return ops[opa.op](es, thrower, o1, o2);
         }
     }
 }
@@ -133,11 +142,13 @@ unittest
     remark = new Remarker(rc);
     auto sp = new StringPrinter;
     auto ap = new printer.AsiPrinter(sp);
-    auto interpreter = new Interpreter;
+    auto ec = new ExceptionCollector;
+    auto interpreter = new Interpreter(new Thrower(ec));
 
     void evalTest(dstring code, dstring expected, EvalStrategy es = EvalStrategy.strict)
     {
         assert (!rc.remarks.length, "Previous test has unverified remarks");
+        assert (!ec.exceptions.length, "Previous test has unverified exceptions");
 
         sp.clear();
         auto asis = parse(code, es);
@@ -149,22 +160,19 @@ unittest
         }
         else
         {
-            assert (expected == "");
+            assert (expected is null);
         }
     }
 
 
-    void verifyRemarks(dstring[] names ...)
-    {
-        common.verifyRemarks(rc, names);
-    }
-
-
+    void verifyRemarks(dstring[] names ...) { common.verifyRemarks(rc, names); }
     void ignoreRemarks() { rc.clear(); }
+    void verifyExceptions(dstring[] names ...) { common.verifyExceptions(ec, names); }
+    void ignoreExceptions() { ec.clear(); }
 
 
-    evalTest("", "");
-    evalTest(" \t", "");
+    evalTest("", null);
+    evalTest(" \t", null);
     evalTest("1", "1");
     evalTest("1+2", "3");
 
@@ -192,9 +200,13 @@ unittest
     ignoreRemarks();
     
 
-    evalTest("9223372036854775808", "<error>");
+    evalTest("9223372036854775808", "<error>", EvalStrategy.strict);
     verifyRemarks("numberNotInRange");
 
-    evalTest("9223372036854775808", "9223372036854775807", EvalStrategy.lax);
-    verifyRemarks("numberNotInRange");
+    evalTest("9223372036854775806 + 2", "9223372036854775807", EvalStrategy.lax);
+
+    evalTest("9223372036854775806 + 2", null, EvalStrategy.throwing);
+    verifyExceptions("integerOwerflow");
+
+    evalTest("", null);
 }

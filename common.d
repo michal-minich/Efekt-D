@@ -1,7 +1,7 @@
 module common;
 
 import std.stdio;
-import utils, common, printer, remarks;
+import utils, common, printer, remarks, exceptions;
 
 @safe nothrow:
 
@@ -9,7 +9,7 @@ Remarker remark;
 AsiPrinter asip;
 
 
-enum EvalStrategy { strict, lax }
+enum EvalStrategy { throwing, strict, lax }
 
 
 interface IReader
@@ -76,4 +76,15 @@ version (unittest) void verifyRemarks(RemarkCollector rc, dstring[] names ...)
 
     rc.clear();
     assert(!rc.remarks.length);
+}
+
+
+version (unittest) void verifyExceptions(ExceptionCollector ec, dstring[] names ...)
+{
+    assert(ec.exceptions.length == names.length);
+    foreach (ix, n; names)
+        assert (ec.exceptions[ix].name == n);
+
+    ec.clear();
+    assert(!ec.exceptions.length);
 }

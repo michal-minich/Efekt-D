@@ -191,6 +191,7 @@
  <Folder name="CoreLang">
   <File path="ast.d" />
   <File path="common.d" />
+  <File path="exceptions.d" />
   <File path="interactive.d" />
   <File path="interpreter.d" />
   <File path="main.d" />

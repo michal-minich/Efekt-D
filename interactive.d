@@ -1,6 +1,6 @@
 module interactive;
 
-import common, parser, printer, interpreter;
+import common, parser, printer, exceptions, interpreter;
 
 @safe nothrow:
 
@@ -20,7 +20,7 @@ final class Interactive
         this.reader = reader;
         this.printer = printer;
         this.asip = asip;
-        interpreter =  new Interpreter;
+        interpreter =  new Interpreter(new Thrower(new ExceptionPrinter(printer)));
         printBanner();
     }
 
@@ -44,6 +44,10 @@ final class Interactive
                 case ":?":
                 case "?":
                     printHelp();
+                    break;
+
+                case ":throwing":
+                    setEvalStrategy(EvalStrategy.throwing);
                     break;
 
                 case ":strict":
@@ -84,15 +88,16 @@ final class Interactive
     void printBanner ()
     {
         printer.println("Corelang interactive, enter \":help\" for list of commands.");
-        setEvalStrategy(EvalStrategy.strict);
+        setEvalStrategy(EvalStrategy.throwing);
     }
 
 
     void printHelp ()
     {
-        printer.println(":q       Quit");
-        printer.println(":strict  Error on any invalid code");
-        printer.println(":lax     Try to evaluate invalid code");
+        printer.println(":q         Quit application");
+        printer.println(":throwing  Stop evaluation with exception");
+        printer.println(":strict    Propagate error to result of expression");
+        printer.println(":lax       Try to evaluate invalid expressions");
     }
 
 

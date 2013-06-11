@@ -1,7 +1,7 @@
 error messages:
 	fix: Expression expected before and after operator
 	add: Expression expected after operator
-interpreter - add exception when + over long max
+parser - add exception when int over long max ?
 handle invalid input in parser / interactive
 review all trusted, cast, assert and catch
 	std and err printers are nothrow, should they throw?

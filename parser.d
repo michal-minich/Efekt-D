@@ -151,12 +151,7 @@ unittest
     }
 
 
-    void verifyRemarks(dstring[] names ...)
-    {
-        common.verifyRemarks(rc, names);
-    }
-    
-
+    void verifyRemarks(dstring[] names ...) { common.verifyRemarks(rc, names); }
     void ignoreRemarks() { rc.clear(); }
 
 
@@ -189,4 +184,6 @@ unittest
 
     testStr("9223372036854775808", "<error>");
     verifyRemarks("numberNotInRange");
+
+    testStr("1", "1");
 }
