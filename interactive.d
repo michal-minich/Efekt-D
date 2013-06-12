@@ -31,7 +31,7 @@ final class Interactive
     {
         while (true)
         {
-            printer.color(Color.cyan, true);
+            printer.color(evalStrategyColor(es), evalStrategyBold(es));
             printer.print(">");
             printer.restoreColor();
 
@@ -117,8 +117,38 @@ final class Interactive
     void setEvalStrategy (EvalStrategy es)
     {
         this.es = es;
+
         printer.color(Color.cyan);
-        printer.println("Current evaluation strategy is "d ~ es.toDString() ~ ".");
+        printer.print("Current evaluation strategy is ");
+
+        printer.color(evalStrategyColor(es), evalStrategyBold(es));
+        printer.print(es.toDString());
+
+        printer.color(Color.cyan);
+        printer.println(".");
+
         printer.restoreColor();
+    }
+
+
+    Color evalStrategyColor (EvalStrategy es)
+    {
+        final switch (es) with (EvalStrategy) 
+        {
+            case throwing: return Color.cyan;
+            case strict: return Color.magenta;
+            case lax: return Color.white;
+        }
+    }
+
+
+    bool evalStrategyBold (EvalStrategy es)
+    {
+        final switch (es) with (EvalStrategy) 
+        {
+            case throwing: return true;
+            case strict: return true;
+            case lax: return true;
+        }
     }
 }
