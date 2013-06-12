@@ -12,6 +12,7 @@ interface AsiVisitor (R)
     R visit (Var);
     R visit (Missing);
     R visit (Err);
+    R visit (Ident);
     R visit (Int);
     R visit (OpApply);
 }
@@ -67,6 +68,15 @@ class Err : Exp
     mixin Acceptors!();
     Asi asi;
     this (Asi asi) { this.asi = asi; }
+}
+
+
+final class Ident : Exp
+{
+    nothrow:
+    mixin Acceptors!();
+    dstring name;
+    this (dstring name) { this.name = name; }
 }
 
 

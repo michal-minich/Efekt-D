@@ -136,4 +136,32 @@ final class ParserRemarks
         r(RemarkSeverity.error, __FUNCTION__, 
           "Unexpected character");
     }
+
+
+    void missingVarName ()
+    {
+        r(RemarkSeverity.error, __FUNCTION__, 
+          "Variable name is not specified");
+    }
+
+
+    void expOrStmInsteadOfVarNameFound ()
+    {
+        r(RemarkSeverity.error, __FUNCTION__, 
+          "");
+    }
+
+
+    void expectedEquals ()
+    {
+        r(RemarkSeverity.error, __FUNCTION__, 
+          "");
+    }
+
+
+    void varValueIsNotStm ()
+    {
+        r(RemarkSeverity.error, __FUNCTION__, 
+          "");
+    }
 }

@@ -160,7 +160,7 @@ version (unittest) void verifyRemarks(
 {
     if (hasError)
         assert(names.length, "Parser is expected to have some remarks when it has error");
-    
+
     assert(rc.remarks.length == names.length);
     foreach (ix, n; names)
         check(rc.remarks[ix].name == n);

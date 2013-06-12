@@ -1,6 +1,6 @@
 module utils;
 
-import std.conv;
+import std.stdio, std.conv;
 
 @safe nothrow:
 
@@ -8,13 +8,9 @@ import std.conv;
 @trusted R dontThrow (R) (lazy R fn)
 {
     try
-    {
         return fn();
-    }
     catch (Exception ex)
-    {
         assert (false, ex.toString());
-    }
 }
 
 
@@ -22,13 +18,9 @@ import std.conv;
     if (is (T == enum) || is (T == string)||is (T == long))
 {
     try
-    {
         return a.to!dstring();
-    }
     catch (Exception ex)
-    {
         assert (false, ex.toString());
-    }
 }
 
 
@@ -44,6 +36,15 @@ import std.conv;
     {
         return cast(B)cast(void*)a;
     }
+}
+
+
+debug @trusted void dbg (Args...) (Args args)
+{
+    try
+        writeln(args);
+    catch (Exception ex)
+        assert (ex.msg);
 }
 
 
@@ -68,7 +69,7 @@ version (unittest) @trusted void check (bool test, string msg = null)
     debug
     {
         if (!test)
-            dontThrow(std.stdio.writeln(msg));
+            dontThrow(writeln(msg));
     }
     else
     {

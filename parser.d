@@ -43,28 +43,57 @@ final class Parser
     {
         replace = false;
 
+        skipWhite(code);
+
         if (!code.length)
             return null;
 
-        while (true)
+        if (matchWithWhite(code, "var"))
         {
-            if (!code.length)
-                return null;
-            if (code[0].isWhite())
-                code = code[1 .. $];
-            else
-                break;
-        }
+            bool _;
 
-        /* if (match(code, "var"))
-        {
-            return null;
+            auto name = parseAsi(code, null, es, _);
+            auto ident = cast(Ident)name;
+
+            if (!name)
+            {
+                remark.parser.missingVarName();
+                return null;
+            }
+            else if (!ident)
+            {
+                remark.parser.expOrStmInsteadOfVarNameFound();
+                return new Err(name);
+            }
+            else
+            {
+                skipWhite(code);
+                
+                if (!matchWithWhite(code, "="))
+                {
+                    remark.parser.expectedEquals();
+                }
+                
+                auto val = parseAsi(code, null, es, _);
+                auto exp = cast(Exp)val;
+                if (!val)
+                {
+                    val = new Missing;
+                }
+                else if (!exp)
+                {
+                    remark.parser.varValueIsNotStm();
+                    val = new Err(val);
+                }
+
+                return new Var(ident.name, exp);
+            }
         }
         else if (auto m = match(code, &isIdent))
         {
-            return null;
+            return new Ident(m);
         }
-        else */ if (auto m = match(code, &isInt))
+        else if (auto m = match(code, &isInt))
         {
             return getIntOrErrFromString(m, es, hasError);
         }
@@ -122,6 +151,20 @@ final class Parser
 
 
 private:
+
+
+void skipWhite (ref dstring code)
+{
+    while (true)
+    {
+        if (!code.length)
+            return;
+        if (code[0].isWhite())
+            code = code[1 .. $];
+        else
+            break;
+    }
+}
 
 
 @trusted Exp getIntOrErrFromString (dstring s, EvalStrategy es, out bool hasError)
@@ -194,6 +237,25 @@ dstring match(ref dstring code, const dstring s)
     return m;
 }
 
+
+
+dstring matchWithWhite(ref dstring code, const dstring s)
+{
+    if (code.length < s.length)
+        return null;
+
+    if (code[0 .. s.length] != s)
+        return null;
+
+    auto m = code[0 .. s.length];
+
+    code = code[s.length .. $];
+
+    if (!code.length || (code.length && code[0].isWhite()))
+        return m;
+
+    return null;
+}
 
 
 unittest

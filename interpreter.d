@@ -63,7 +63,7 @@ final class Interpreter : AsiVisitor!Asi
 
     Var visit (Var v)
     {
-        assert (false);
+        return v;
     }
 
 
@@ -90,6 +90,12 @@ final class Interpreter : AsiVisitor!Asi
         return er;
     }
 
+    
+    Exp visit (Ident i)
+    {
+        return i;
+    }
+    
 
     Int visit (Int i) { return i; }
 

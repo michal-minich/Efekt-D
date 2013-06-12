@@ -20,8 +20,11 @@ final class AsiPrinter : AsiVisitor!void
     {
         printer.print("var ");
         printer.print(v.name);
-        printer.print(" = ");
-        v.value.accept(this);
+        if (v.value)
+        {
+            printer.print(" = ");
+            v.value.accept(this);
+        }
     }
 
 
@@ -40,6 +43,12 @@ final class AsiPrinter : AsiVisitor!void
             er.asi.accept(this);
         }
         printer.print(">");
+    }
+
+
+    void visit (Ident i)
+    {
+        printer.print(i.name);
     }
 
 
