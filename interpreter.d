@@ -42,6 +42,7 @@ final class Interpreter : AsiVisitor!Asi
 
     private EvalStrategy es;
     private Thrower thrower;
+    Exp[dstring] vars;
 
 
     this (Thrower thrower) { this.thrower = thrower; }
@@ -60,10 +61,17 @@ final class Interpreter : AsiVisitor!Asi
     }
 
 
+    Exp eval (Exp e)
+    {
+        return sureCast!Exp(e.accept(this));
+    }
+
 
     Var visit (Var v)
     {
-        return v;
+        auto val = v.value ? eval(v.value) : new Missing;
+        vars[v.name] = val;
+        return null;
     }
 
 
@@ -93,7 +101,12 @@ final class Interpreter : AsiVisitor!Asi
     
     Exp visit (Ident i)
     {
-        return i;
+        auto var = i.name in vars;
+        if (var)
+            return eval(*var);
+        
+        thrower.undefinedVariable(i.name);
+        return null;
     }
     
 
@@ -173,7 +186,7 @@ final class Interpreter : AsiVisitor!Asi
 
         auto opfn = opa.op in ops;
         if (opfn)
-            return (*opfn)(es, thrower, o1, o2);
+            return (*opfn)(es, thrower, eval(o1), eval(o2));
         
         final switch (es) with (EvalStrategy)
         {

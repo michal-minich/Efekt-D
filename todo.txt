@@ -2,4 +2,3 @@ review all trusted, cast, assert and catch
 	std and err printers are nothrow, should they throw?
 better error messages: var, texts in general, include subject of error
 unittests: ident, var, unknown operators
-interpret var and ident
