@@ -110,6 +110,13 @@ final class ParserRemarks
     }
 
 
+    void opBetweenStatements ()
+    {
+        r(RemarkSeverity.error, __FUNCTION__, 
+          "Operator should be placed between expressions, not statements");
+    }
+
+
     void opWithoutOperands ()
     {
         r(RemarkSeverity.error, __FUNCTION__, 

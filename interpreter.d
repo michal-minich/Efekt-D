@@ -183,24 +183,24 @@ unittest
 
     void evalTest(dstring code, dstring expected, EvalStrategy es = EvalStrategy.throwing)
     {
-        assert (!rc.remarks.length, "Previous test has unverified remarks");
-        assert (!ec.exceptions.length, "Previous test has unverified exceptions");
+        check(!rc.remarks.length, "Previous test has unverified remarks");
+        check(!ec.exceptions.length, "Previous test has unverified exceptions");
 
         sp.clear();
         auto asis = p.parse(code, es);
 
         if (p.hasError && EvalStrategy.throwing)
-            assert (expected is null);
+            check(expected is null);
 
         auto res = interpreter.run(asis, es);
         if (res)
         {
             res.accept(ap);
-            assert(sp.str == expected);
+            check(sp.str == expected);
         }
         else
         {
-            assert (expected is null);
+            check(expected is null);
         }
     }
 

@@ -61,3 +61,20 @@ string lastItemInList (string list, char separator)
 {
     return list[list.lastIndexOf(separator) + 1 .. $];
 }
+
+
+version (unittest) @trusted void check (bool test, string msg = null)
+{
+    debug
+    {
+        if (!test)
+            dontThrow(std.stdio.writeln(msg));
+    }
+    else
+    {
+        if (msg)
+            assert (test, msg);
+        else
+            assert (test);
+    }
+}

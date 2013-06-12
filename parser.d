@@ -1,33 +1,130 @@
 module parser;
 
 import std.conv, std.bigint;
-import common, ast, remarks;
+import utils, common, ast, remarks;
 
 @safe nothrow:
 
 
-string next (string end)
-{
-    return "
-    ++codeIx;
-    if (codeIx == code.length) goto " ~ end ~ ";
-    ch = code[codeIx];";
-}
-
 final class Parser
 {
-nothrow:
+    nothrow:
 
-bool hasError;
+    bool hasError;
+
+    Asi[] parse (dstring code, EvalStrategy es)
+    {
+        if (!code.length)
+            return [];
+
+        auto code2 = code;
+
+        hasError = false;
+
+        Asi asi;
+        Asi[] asis;
+        while (true)
+        {
+            bool replace;
+            asi = parseAsi(code2, asi, es, replace);
+            if (!asi)
+                break;
+            if (replace && asis.length)
+                asis[$ - 1] = asi;
+            else
+                asis ~= asi;
+        }
+
+        return asis;
+    }
 
 
-T newAsi (T : Asi, Args...) (Args args)
-{
-    return new T(args);
+    private Asi parseAsi (ref dstring code, Asi prevAsi, EvalStrategy es, out bool replace)
+    {
+        replace = false;
+
+        if (!code.length)
+            return null;
+
+        while (true)
+        {
+            if (!code.length)
+                return null;
+            if (code[0].isWhite())
+                code = code[1 .. $];
+            else
+                break;
+        }
+
+        /* if (match(code, "var"))
+        {
+            return null;
+        }
+        else if (auto m = match(code, &isIdent))
+        {
+            return null;
+        }
+        else */ if (auto m = match(code, &isInt))
+        {
+            return getIntOrErrFromString(m, es, hasError);
+        }
+        else if (auto m = match(code, &isOp))
+        {       
+            bool _;
+            auto op1 = prevAsi;
+            auto op2 = parseAsi(code, null, es, _);
+
+            if (!prevAsi && !op2)
+            {
+                remark.parser.opWithoutOperands();
+                op1 = new Missing;
+                op2 = new Missing;
+            }
+            else if (!prevAsi)
+            {
+                remark.parser.expExpectedBeforeOp();
+                op1 = new Missing;
+            }
+            else if (!op2)
+            {
+                remark.parser.expExpectedAfterOp();
+                op2 = new Missing;
+            }
+
+            auto stm1 = cast(Stm)prevAsi;
+            auto stm2 = cast(Stm)op2;
+
+            if (stm1 && stm2)
+            {
+                remark.parser.opBetweenStatements();
+                op1 = new Err(stm1);
+                op2 = new Err(stm2);
+            }
+            else if (stm1)
+            {
+                remark.parser.expExpectedBeforeOpButStmFound();
+                op1 = new Err(stm1);
+            }
+            else if (stm2)
+            {
+                remark.parser.expExpectedAfterOpButStmFound();
+                op2 = new Err(stm2);
+            }
+
+            replace = true;
+            return new OpApply(m, sureCast!Exp(op1), sureCast!Exp(op2));
+        }
+
+        remark.parser.unexpectedChar();
+        return null;
+    }
 }
 
 
-@trusted private Exp getIntOrErrFromString(dstring s, EvalStrategy es)
+private:
+
+
+@trusted Exp getIntOrErrFromString (dstring s, EvalStrategy es, out bool hasError)
 {
     try
     {
@@ -37,12 +134,12 @@ T newAsi (T : Asi, Args...) (Args args)
             remark.parser.numberNotInRange();
             hasError = true;
             return es == EvalStrategy.lax
-                ? newAsi!Int(s, bi.toLong())
-                : newAsi!Err(null);
+                ? new Int(s, bi.toLong())
+                : new Err(null);
         }
         else
         {
-            return newAsi!Int(s, bi.toLong());
+            return new Int(s, bi.toLong());
         }
     }
     catch (Exception ex)
@@ -51,125 +148,53 @@ T newAsi (T : Asi, Args...) (Args args)
     }
 }
 
+bool isWhite (const dchar ch) { return ch == ' ' || ch == '\t'; }
+bool isInt (const dchar ch) { return ch >= '0' && ch <= '9'; }
+bool isIdent (const dchar ch) { return ch >= 'a' && ch <= 'z'; }
 
-Asi[] parse(dstring code, EvalStrategy es)
+bool isOp (const dchar ch)
+{ 
+    return ch == '+' || ch == '-' || ch == '*' || ch == '\\' || ch == '%';
+}
+
+
+
+
+dstring match(ref dstring code, bool function (const dchar) @safe nothrow isMatch)
 {
-    if (!code.length)
+    size_t i;
+    do
+    {
+        if (!isMatch(code[i]))
+        {
+            if (i > 0)
+                break;
+            else
+                return null;
+        }
+        ++i;
+    } while (code.length > i);
+
+    auto m = code[0 .. i];
+    code = code[i .. $];
+    return m;
+}
+
+
+dstring match(ref dstring code, const dstring s)
+{
+    if (code.length < s.length)
         return null;
 
-    hasError = false;
-    enum maxAsis = 1000;
-    size_t codeIx;
-    size_t startIx;
-    size_t asiIx;
-    dchar ch = code[0];
-    auto asis = new Asi[maxAsis];
+    if (code[0 .. s.length] != s)
+        return null;
 
-
-    nothrow void parseInt()
-    {
-        startIx = codeIx;
-
-        mixin (next("intEnd"));
-
-        while (ch >= '0' && ch <= '9')
-            mixin (next("intEnd"));
-
-        intEnd:
-
-        auto i = getIntOrErrFromString(code[startIx .. codeIx], es);
-
-        OpApply opApply;
-        if (asiIx)
-            opApply = cast(OpApply)asis[asiIx - 1];
-
-        if (opApply)
-            opApply.op2 = i;
-        else
-        {
-            asis[asiIx++] = i;
-        }
-    }
-
-
-    nothrow void parseOp()
-    {
-        Exp op1;
-        size_t opaIx;
-        if (asiIx)
-        {
-            opaIx = asiIx - 1;
-            op1 = cast(Exp)asis[opaIx];
-            if (!op1)
-            {
-                remark.parser.expExpectedBeforeOpButStmFound();
-                op1 = newAsi!Err(asis[opaIx]);
-            }
-        }
-        else
-        {
-            opaIx = 0;
-            op1 = newAsi!Missing();
-            ++asiIx;
-        }
-
-        asis[opaIx] = newAsi!OpApply(code[codeIx .. codeIx + 1], op1, newAsi!Missing());
-    }
-
-    next:
-
-    while (ch == ' ' || ch == '\t')
-        mixin (next("end"));
-
-    if (ch =='+')
-    {
-        parseOp();
-        mixin (next("end"));
-    }
-
-    else if (ch >= '0' && ch <= '9')
-    {
-        parseInt();
-    }
-
-    else
-    {
-        hasError = true;
-        remark.parser.unexpectedChar();
-        goto end;
-    }
-
-    if (codeIx != code.length)
-        goto next;
-
-    end:
-
-    auto opa = cast(OpApply)asis[0];
-    if (opa)
-    {
-        auto o1 = cast(Missing)opa.op1;
-        auto o2 = cast(Missing)opa.op2;
-
-        if (o1 && o2)
-        {
-            hasError = true;
-            remark.parser.opWithoutOperands();
-        }
-        else if (o1)
-        {
-            hasError = true;
-            remark.parser.expExpectedBeforeOp();
-        }
-        else if (o2)
-        {
-            hasError = true;
-            remark.parser.expExpectedAfterOp();
-        }
-    }
-
-    return asis[0 .. asiIx];
+    auto m = code[0 .. s.length];
+    code = code[s.length .. $];
+    return m;
 }
-}
+
+
 
 unittest
 {
@@ -183,14 +208,14 @@ unittest
 
     void testStr(dstring code, dstring asi, EvalStrategy es = EvalStrategy.strict)
     {
-        assert (!rc.remarks.length, "Previous test has unverified remarks");
+        check(!rc.remarks.length, "Previous test has unverified remarks");
 
         sp.clear();
         p.parse(code, es)[0].accept(ap);
         //stdp.print(code);
         //stdp.print(" | ");
         //stdp.println(asi);
-        assert(sp.str == asi);
+        check(sp.str == asi);
     }
 
 
