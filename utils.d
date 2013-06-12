@@ -24,12 +24,22 @@ import std.stdio, std.conv;
 }
 
 
+@trusted string toString (dstring s) 
+{
+    try
+        return s.to!string();
+    catch (Exception ex)
+        assert (false, ex.toString());
+}
+
+
 @trusted B sureCast (B, A) (A a)
 {
     debug
     {
         auto res = cast(B)a;
-        assert(res);
+        if (a)
+            assert(res);
         return res;
     }
     else

@@ -36,19 +36,17 @@ static this ()
 }
 
 
-final class Interpreter : AsiVisitor!Asi
+final class Interpreter // : AsiVisitor!Asi
 {
-    nothrow:
-
     private EvalStrategy es;
     private Thrower thrower;
     Exp[dstring] vars;
 
 
-    this (Thrower thrower) { this.thrower = thrower; }
+    nothrow this (Thrower thrower) { this.thrower = thrower; }
 
 
-    Asi run (Asi[] asis, EvalStrategy es)
+    nothrow Asi run (Asi[] asis, EvalStrategy es)
     {
         if (!asis.length)
             return null;
@@ -57,7 +55,18 @@ final class Interpreter : AsiVisitor!Asi
 
         assert (asis.length == 1);
 
-        return asis[0].accept(this);
+        try
+        {
+            return asis[0].accept(this);
+        }
+        catch (InterpreterException ex)
+        {
+            return null;
+        }
+        catch (Exception ex)
+        {
+            assert (false, ex.msg);
+        }
     }
 
 
@@ -78,10 +87,7 @@ final class Interpreter : AsiVisitor!Asi
     Missing visit (Missing m)
     {
         if (es == EvalStrategy.throwing)
-        {
-            thrower.cannotEvalErrorOrMissing();
-            return null;
-        }
+            thrower.cannotEvalMissing();
 
         return m;
     }
@@ -90,10 +96,7 @@ final class Interpreter : AsiVisitor!Asi
     Err visit (Err er)
     {
         if (es == EvalStrategy.throwing)
-        {
-            thrower.cannotEvalErrorOrMissing();
-            return null;
-        }
+            thrower.cannotEvalError();
 
         return er;
     }
@@ -106,7 +109,7 @@ final class Interpreter : AsiVisitor!Asi
             return eval(*var);
         
         thrower.undefinedVariable(i.name);
-        return null;
+        return new Missing;
     }
     
 
@@ -115,78 +118,78 @@ final class Interpreter : AsiVisitor!Asi
 
     Exp visit (OpApply opa)
     {
-        auto o1 = opa.op1;
-        auto o2 = opa.op2;
+        auto o1 = eval(opa.op1);
+        auto o2 = eval(opa.op2);
         Exp firstGood;
 
         if (es == EvalStrategy.throwing)
         {
-            Asi x = cast(Missing)opa.op1;
+            Asi x = cast(Missing)o1;
             if (!x)
-                x = cast(Missing)opa.op2;
+                x = cast(Missing)o2;
             if (x)
             {
-                thrower.cannotEvalErrorOrMissing();
+                thrower.cannotEvalMissing();
                 return null;
             }
 
-            x = cast(Err)opa.op1;
+            x = cast(Err)o1;
             if (!x)
-                x = cast(Err)opa.op2;
+                x = cast(Err)o2;
             if (x)
             {
-                thrower.cannotEvalErrorOrMissing();
+                thrower.cannotEvalError();
                 return null;
             }
         }
         else if (es == EvalStrategy.strict)
         {
-            Asi x = cast(Missing)opa.op1;
+            Asi x = cast(Missing)o1;
             if (x)
                 return new Err(opa);
 
-            x = cast(Err)opa.op1;
+            x = cast(Err)o1;
             if (x)
                 return new Err(opa);
 
-            x = cast(Missing)opa.op2;
+            x = cast(Missing)o2;
             if (x)
                 return new Err(opa);
 
-            x = cast(Err)opa.op2;
+            x = cast(Err)o2;
             if (x)
                 return new Err(opa);
         }
         else
         {
-            Asi x = cast(Missing)opa.op1;
+            Asi x = cast(Missing)o1;
             if (x)
                 o1 = new Int(0);
             else
             {
-                x = cast(Err)opa.op1;
+                x = cast(Err)o1;
                 if (x)
                     o1 = new Int(0);
                 else
-                    firstGood = opa.op1;
+                    firstGood = o1;
             }
 
-            x = cast(Missing)opa.op2;
+            x = cast(Missing)o2;
             if (x)
                 o2 = new Int(0);
             else
             {
-                x = cast(Err)opa.op2;
+                x = cast(Err)o2;
                 if (x)
                     o2 = new Int(0);
                 else if (!firstGood)
-                    firstGood = opa.op2;
+                    firstGood = o2;
             }
         }
 
         auto opfn = opa.op in ops;
         if (opfn)
-            return (*opfn)(es, thrower, eval(o1), eval(o2));
+            return (*opfn)(es, thrower, o1, o2);
         
         final switch (es) with (EvalStrategy)
         {
@@ -252,15 +255,15 @@ unittest
 
     evalTest("+3", null);
     verifyRemarks("expExpectedBeforeOp");
-    verifyExceptions("cannotEvalErrorOrMissing");
+    verifyExceptions("cannotEvalMissing");
 
     evalTest("+", null);
     verifyRemarks("opWithoutOperands");
-    verifyExceptions("cannotEvalErrorOrMissing");
+    verifyExceptions("cannotEvalMissing");
 
     evalTest("3+", null);
     verifyRemarks("expExpectedAfterOp");
-    verifyExceptions("cannotEvalErrorOrMissing");
+    verifyExceptions("cannotEvalMissing");
 
 
     evalTest("+3", "<error <missing> + 3>", EvalStrategy.strict);

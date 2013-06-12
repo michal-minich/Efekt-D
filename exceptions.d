@@ -47,24 +47,37 @@ final class ExceptionCollector : IExceptionPrinter
 }
 
 
-final class Thrower
+final class InterpreterException : Exception
 {
     nothrow:
+    this (string msg) { super (msg); }
+}
 
+
+final class Thrower
+{
     private IExceptionPrinter ep;
 
-    this (IExceptionPrinter ep) { this.ep = ep; }
+    nothrow this (IExceptionPrinter ep) { this.ep = ep; }
 
 
     private void e(string name, dstring text)
     {
-        ep.print(Except(lastItemInList(name, '.').toDString(), text));
+        auto lastName = lastItemInList(name, '.');
+        ep.print(Except(lastName.toDString(), text));
+        throw new InterpreterException("[" ~ lastName ~ "] " ~ text.toString());
     }
 
 
-    void cannotEvalErrorOrMissing ()
+    void cannotEvalError ()
     {
-        e(__FUNCTION__, "Expression or its part has and error or is missing");
+        e(__FUNCTION__, "Expression or its part has and error");
+    }
+
+
+    void cannotEvalMissing ()
+    {
+        e(__FUNCTION__, "Expression or its part is missing");
     }
 
 

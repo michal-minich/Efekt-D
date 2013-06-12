@@ -20,16 +20,16 @@ interface AsiVisitor (R)
 
 mixin template Acceptors ()
 {
-    override void accept (AsiPrinter v) { v.visit(this); }
+    nothrow override void accept (AsiPrinter v) { v.visit(this); }
     override Asi accept (Interpreter v) { return v.visit(this); }
 }
 
 
 abstract class  Asi
 {
+    Asi accept (Interpreter);
     nothrow:
     void accept (AsiPrinter);
-    Asi accept (Interpreter);
 }
 
 
@@ -47,8 +47,8 @@ abstract class Exp : Asi
 
 class Var : Stm
 {
-    nothrow:
     mixin Acceptors!();
+    nothrow:
     dstring name;
     Exp value;
     this (dstring name, Exp value) { this.name = name; this.value = value; }
@@ -57,15 +57,15 @@ class Var : Stm
 
 class Missing : Exp
 {
-    nothrow:
     mixin Acceptors!();
+    nothrow:
 }
 
 
 class Err : Exp
 {
-    nothrow:
     mixin Acceptors!();
+    nothrow:
     Asi asi;
     this (Asi asi) { this.asi = asi; }
 }
@@ -73,8 +73,8 @@ class Err : Exp
 
 final class Ident : Exp
 {
-    nothrow:
     mixin Acceptors!();
+    nothrow:
     dstring name;
     this (dstring name) { this.name = name; }
 }
@@ -82,8 +82,8 @@ final class Ident : Exp
 
 final class Int : Exp
 {
-    nothrow:
     mixin Acceptors!();
+    nothrow:
 
     dstring asString;
     long asLong;
@@ -102,9 +102,8 @@ final class Int : Exp
 
 final class OpApply : Exp
 {
-    nothrow:
-
     mixin Acceptors!();
+    nothrow:
 
     dstring op;
     Exp op1;
