@@ -62,14 +62,20 @@ final class Thrower
     }
 
 
-    void cannotEvalErrorOrMissing()
+    void cannotEvalErrorOrMissing ()
     {
         e(__FUNCTION__, "Expression or its part has and error or is missing");
     }
 
 
-    void integerOwerflow()
+    void integerOwerflow ()
     {
         e(__FUNCTION__, "Integer overflowed over maximum value");
+    }
+
+
+    void opeatorIsUndefined (dstring op)
+    {
+        e(__FUNCTION__, "Operator '" ~ op ~ "'is undefined.");
     }
 }

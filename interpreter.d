@@ -96,6 +96,10 @@ final class Interpreter : AsiVisitor!Asi
 
     Exp visit (OpApply opa)
     {
+        auto o1 = opa.op1;
+        auto o2 = opa.op2;
+        Exp firstGood;
+
         if (es == EvalStrategy.throwing)
         {
             Asi x = cast(Missing)opa.op1;
@@ -115,9 +119,6 @@ final class Interpreter : AsiVisitor!Asi
                 thrower.cannotEvalErrorOrMissing();
                 return null;
             }
-
-            else
-                return ops[opa.op](es, thrower, opa.op1, opa.op2);
         }
         else if (es == EvalStrategy.strict)
         {
@@ -136,13 +137,9 @@ final class Interpreter : AsiVisitor!Asi
             x = cast(Err)opa.op2;
             if (x)
                 return new Err(opa);
-
-            return ops[opa.op](es, thrower, opa.op1, opa.op2);
         }
         else
         {
-            auto o1 = opa.op1;
-            auto o2 = opa.op2;
             Asi x = cast(Missing)opa.op1;
             if (x)
                 o1 = new Int(0);
@@ -151,6 +148,8 @@ final class Interpreter : AsiVisitor!Asi
                 x = cast(Err)opa.op1;
                 if (x)
                     o1 = new Int(0);
+                else
+                    firstGood = opa.op1;
             }
 
             x = cast(Missing)opa.op2;
@@ -161,10 +160,26 @@ final class Interpreter : AsiVisitor!Asi
                 x = cast(Err)opa.op2;
                 if (x)
                     o2 = new Int(0);
+                else if (!firstGood)
+                    firstGood = opa.op2;
             }
-
-            return ops[opa.op](es, thrower, o1, o2);
         }
+
+        auto opfn = opa.op in ops;
+        if (opfn)
+            return (*opfn)(es, thrower, o1, o2);
+        
+        final switch (es) with (EvalStrategy)
+        {
+            case throwing:
+                thrower.opeatorIsUndefined (opa.op);
+                return null;
+            case strict:
+                return new Err(opa);
+            case lax:
+                assert (firstGood);
+                return firstGood;
+        }        
     }
 }
 
