@@ -137,7 +137,7 @@ final class Interactive
         {
             case throwing: return Color.cyan;
             case strict: return Color.magenta;
-            case lax: return Color.white;
+            case lax: return Color.yellow;
         }
     }
 

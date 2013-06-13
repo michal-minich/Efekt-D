@@ -189,14 +189,14 @@
   <filesToClean>*.obj;*.cmd;*.build;*.json;*.dep</filesToClean>
  </Config>
  <Folder name="CoreLang">
+  <Folder name="lib">
+   <File path="lib\terminal.d" />
+  </Folder>
   <Folder name="tests">
    <File path="tests\all.d" />
    <File path="tests\interpreter.d" />
    <File path="tests\parser.d" />
    <File path="tests\utils.d" />
-  </Folder>
-  <Folder name="lib">
-   <File path="lib\terminal.d" />
   </Folder>
   <File path="ast.d" />
   <File path="common.d" />

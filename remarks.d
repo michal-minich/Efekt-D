@@ -138,7 +138,7 @@ final class ParserRemarks
     }
 
 
-    void missingVarName ()
+    void varNameIsMissing ()
     {
         r(RemarkSeverity.error, __FUNCTION__, 
           "Variable name is not specified");
@@ -148,20 +148,27 @@ final class ParserRemarks
     void expOrStmInsteadOfVarNameFound ()
     {
         r(RemarkSeverity.error, __FUNCTION__, 
-          "");
+          "Variable name is missing");
     }
 
 
-    void expectedEquals ()
+    void varEqualsIsMissing ()
     {
         r(RemarkSeverity.error, __FUNCTION__, 
-          "");
+          "Expected equals and expression to be assigned to value");
     }
 
 
-    void varValueIsNotStm ()
+    void varValueIsMissing ()
     {
         r(RemarkSeverity.error, __FUNCTION__, 
-          "");
+          "Expected expression after equal sign");
+    }
+
+
+    void varValueIsNotExp ()
+    {
+        r(RemarkSeverity.error, __FUNCTION__, 
+          "An expression should be assigned to variable, not statement");
     }
 }

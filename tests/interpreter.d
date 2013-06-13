@@ -28,17 +28,17 @@ unittest
         auto asis = p.parse(code, es);
 
         if (p.hasError && EvalStrategy.throwing)
-            check(expected is null);
+            check(expected is null, "Nothing expected when parser has error and es == throwing");
 
         auto res = interpreter.run(asis, es);
         if (res)
         {
             res.accept(ap);
-            check(sp.str == expected);
+            check(sp.str == expected, "Evaluated other than expected value.");
         }
         else
         {
-            check(expected is null);
+            check(expected is null, "Expected nothing");
         }
     }
 

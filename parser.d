@@ -57,7 +57,7 @@ final class Parser
 
             if (!name)
             {
-                remark.parser.missingVarName();
+                remark.parser.varNameIsMissing();
                 return null;
             }
             else if (!ident)
@@ -68,21 +68,24 @@ final class Parser
             else
             {
                 skipWhite(code);
-                
+                bool hasEq = true;
                 if (!matchWithWhite(code, "="))
                 {
-                    remark.parser.expectedEquals();
+                    hasEq = false;
+                    remark.parser.varEqualsIsMissing();
                 }
                 
                 auto val = parseAsi(code, null, es, _);
                 auto exp = cast(Exp)val;
                 if (!val)
                 {
+                    if (hasEq)
+                        remark.parser.varValueIsMissing();
                     val = new Missing;
                 }
                 else if (!exp)
                 {
-                    remark.parser.varValueIsNotStm();
+                    remark.parser.varValueIsNotExp();
                     val = new Err(val);
                 }
 

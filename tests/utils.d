@@ -6,7 +6,7 @@ import utils, exceptions, remarks;
 @safe nothrow version (unittest):
 
 
-@trusted void check (bool test, string msg = null)
+@trusted void check (bool test, string msg)
 {
     debug
     {
@@ -30,7 +30,7 @@ void verifyRemarks(bool hasError, RemarkCollector rc, dstring[] names ...)
 
     assert(rc.remarks.length == names.length);
     foreach (ix, n; names)
-        check(rc.remarks[ix].name == n);
+        check(rc.remarks[ix].name == n, "Other remark found");
 
     rc.clear();
     assert(!rc.remarks.length);
@@ -41,7 +41,7 @@ void verifyExceptions(ExceptionCollector ec, dstring[] names ...)
 {
     assert(ec.exceptions.length == names.length);
     foreach (ix, n; names)
-        check(ec.exceptions[ix].name == n);
+        check(ec.exceptions[ix].name == n, "Other exception found");
 
     ec.clear();
     assert(!ec.exceptions.length);

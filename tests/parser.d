@@ -15,16 +15,21 @@ unittest
     auto ap = new printer.AsiPrinter(sp);
     auto p = new Parser;
 
-    void testStr(dstring code, dstring asi, EvalStrategy es = EvalStrategy.strict)
+    void testStr(dstring code, dstring expected, EvalStrategy es = EvalStrategy.strict)
     {
         check(!rc.remarks.length, "Previous test has unverified remarks");
 
         sp.clear();
-        p.parse(code, es)[0].accept(ap);
-        //stdp.print(code);
-        //stdp.print(" | ");
-        //stdp.println(asi);
-        check(sp.str == asi);
+        auto asis = p.parse(code, es);
+        if (asis)
+        {
+            asis[0].accept(ap);
+            check(sp.str == expected, "Parsed other than expected value");
+        }
+        else
+        {
+            check(asis is null, "Expected nothing");
+        }
     }
 
 
@@ -32,7 +37,7 @@ unittest
     void ignoreRemarks() { rc.clear(); }
 
 
-    assert(p.parse("", EvalStrategy.strict).length == 0);
+    testStr("", null);
     testStr("1", "1");
     testStr("123", "123");
     testStr("  123", "123");
@@ -47,13 +52,22 @@ unittest
     verifyRemarks("expExpectedBeforeOp");
 
     testStr("+", "<missing> + <missing>");
-    //verifyRemarks("opWithoutOperands");
-    ignoreRemarks();
+    verifyRemarks("opWithoutOperands");
 
     testStr("1+", "1 + <missing>");
-    //verifyRemarks("expExpecteAfterOp");
-    ignoreRemarks();
+    verifyRemarks("expExpectedAfterOp");
 
+    testStr("var", null);
+    verifyRemarks("varNameIsMissing");
+
+    testStr("var x", "var x");
+    verifyRemarks("varEqualsIsMissing");
+
+    testStr("var x =", "var x");
+    verifyRemarks("varValueIsMissing");
+
+    testStr("var x = var x = 1", "var x");
+    verifyRemarks("varValueIsNotExp");
 
     testStr("9223372036854775807", "9223372036854775807");
     testStr("9223372036854775808", "9223372036854775807", EvalStrategy.lax);

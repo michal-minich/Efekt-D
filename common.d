@@ -32,6 +32,7 @@ interface IBasicPrinter
     void println ();
 }
 
+
 interface IPrinter : IBasicPrinter
 {
     nothrow:
@@ -39,6 +40,7 @@ interface IPrinter : IBasicPrinter
     void color (Color c, bool bold = false);
     void restoreColor ();
 }
+
 
 final class StdInReader : IReader
 {

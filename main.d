@@ -14,7 +14,7 @@ int main(string[] argv)
     version (unittest)
     {
         import tests.all;
-        stdp.println("======== All Tests Succeeded ========");
+        stdp.println("======== All Tests Executed ========");
     }
 
     auto interactive = new Interactive(
