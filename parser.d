@@ -51,8 +51,12 @@ final class Parser
         if (matchWithWhite(code, "var"))
         {
             bool _;
+            Asi name;
 
-            auto name = parseAsi(code, null, es, _);
+            skipWhite(code);
+            if (!matchWithWhite(code, "="))
+                name = parseAsi(code, null, es, _);
+
             auto ident = cast(Ident)name;
 
             if (!name)
@@ -63,7 +67,11 @@ final class Parser
             else if (!ident)
             {
                 remark.parser.expOrStmInsteadOfVarNameFound();
-                return new Err(name);
+                auto e = cast(Exp)name;
+                if (e)
+                    return new Err(new Var("<missing>", e));
+                else
+                    return new Err(new Var("<missing>", new Err(e)));
             }
             else
             {
@@ -80,13 +88,15 @@ final class Parser
                 if (!val)
                 {
                     if (hasEq)
+                    {
                         remark.parser.varValueIsMissing();
-                    val = new Missing;
+                        exp = new Missing;
+                    }
                 }
                 else if (!exp)
                 {
                     remark.parser.varValueIsNotExp();
-                    val = new Err(val);
+                    exp = new Err(val);
                 }
 
                 return new Var(ident.name, exp);

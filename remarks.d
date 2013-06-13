@@ -141,14 +141,14 @@ final class ParserRemarks
     void varNameIsMissing ()
     {
         r(RemarkSeverity.error, __FUNCTION__, 
-          "Variable name is not specified");
+          "Variable name is missing");
     }
 
 
     void expOrStmInsteadOfVarNameFound ()
     {
         r(RemarkSeverity.error, __FUNCTION__, 
-          "Variable name is missing");
+          "Variable name was expected, but expression or statement found");
     }
 
 

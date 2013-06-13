@@ -24,7 +24,8 @@ unittest
         if (asis)
         {
             asis[0].accept(ap);
-            check(sp.str == expected, "Parsed other than expected value");
+            check(sp.str == expected, "Parsed other than expected value '"
+                  ~ code ~ "' -> '"~ sp.str ~ "' != '" ~ expected ~ "'");
         }
         else
         {
@@ -60,14 +61,44 @@ unittest
     testStr("var", null);
     verifyRemarks("varNameIsMissing");
 
+     // this should have no remark, or either result should be "var x = <missing>"
     testStr("var x", "var x");
     verifyRemarks("varEqualsIsMissing");
 
-    testStr("var x =", "var x");
+    testStr("var x 1", "var x = 1");
+    verifyRemarks("varEqualsIsMissing");
+
+    testStr("var x =", "var x = <missing>");
     verifyRemarks("varValueIsMissing");
 
-    testStr("var x = var x = 1", "var x");
+    testStr("var x = var x = 1", "var x = <error var x = 1>");
     verifyRemarks("varValueIsNotExp");
+
+    testStr("var 1", "<error var <missing> = 1>");
+    verifyRemarks("expOrStmInsteadOfVarNameFound");
+
+    testStr("var = 1", "<error 1>");
+    verifyRemarks("varNameIsMissing");
+
+
+    // var var
+    // var var x
+    // var var x = 1
+    // var x var x
+    // var x var x = 1
+    // var x x
+    // var x = x
+
+
+    testStr("var x = 1 + 2", "<error var x = 1> + 2");
+    verifyRemarks("expExpectedBeforeOpButStmFound");
+
+    testStr("2 + var x = 1", "2 + <error var x = 1>");
+    verifyRemarks("expExpectedAfterOpButStmFound");
+
+    testStr("var x = 1 + var x = 2", "<error var x = 1> + <error var x = 2>");
+    verifyRemarks("opBetweenStatements");
+
 
     testStr("9223372036854775807", "9223372036854775807");
     testStr("9223372036854775808", "9223372036854775807", EvalStrategy.lax);
