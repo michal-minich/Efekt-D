@@ -12,7 +12,10 @@ int main(string[] argv)
     auto stdp = new StdOutPrinter;
 
     version (unittest)
+    {
+        import tests.all;
         stdp.println("======== All Tests Succeeded ========");
+    }
 
     auto interactive = new Interactive(
          new StdInReader,

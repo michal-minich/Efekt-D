@@ -2,11 +2,12 @@ module common;
 
 import std.stdio;
 import terminal;
-import utils, common, printer, remarks, exceptions;
+import utils, printer, remarks;
 
 public import terminal : Color; 
 
 @safe nothrow:
+
 
 Remarker remark;
 AsiPrinter asip;
@@ -152,30 +153,4 @@ final class StringPrinter : IPrinter
     void print (dstring s) { str ~= s; }
     void println (dstring s) { str ~= s ~ '\n'; }
     void println () { str ~= '\n'; }
-}
-
-
-version (unittest) void verifyRemarks(
-    bool hasError, RemarkCollector rc, dstring[] names ...)
-{
-    if (hasError)
-        assert(names.length, "Parser is expected to have some remarks when it has error");
-
-    assert(rc.remarks.length == names.length);
-    foreach (ix, n; names)
-        check(rc.remarks[ix].name == n);
-
-    rc.clear();
-    assert(!rc.remarks.length);
-}
-
-
-version (unittest) void verifyExceptions(ExceptionCollector ec, dstring[] names ...)
-{
-    assert(ec.exceptions.length == names.length);
-    foreach (ix, n; names)
-        check(ec.exceptions[ix].name == n);
-
-    ec.clear();
-    assert(!ec.exceptions.length);
 }

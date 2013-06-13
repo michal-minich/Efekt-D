@@ -1,6 +1,6 @@
 module utils;
 
-import std.stdio, std.conv;
+import std.conv;
 
 @safe nothrow:
 
@@ -71,21 +71,4 @@ size_t lastIndexOf (string items, char item)
 string lastItemInList (string list, char separator)
 {
     return list[list.lastIndexOf(separator) + 1 .. $];
-}
-
-
-version (unittest) @trusted void check (bool test, string msg = null)
-{
-    debug
-    {
-        if (!test)
-            dontThrow(writeln(msg));
-    }
-    else
-    {
-        if (msg)
-            assert (test, msg);
-        else
-            assert (test);
-    }
 }
