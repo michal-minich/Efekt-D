@@ -188,7 +188,7 @@
   <postBuildCommand />
   <filesToClean>*.obj;*.cmd;*.build;*.json;*.dep</filesToClean>
  </Config>
- <Folder name="CoreLang">
+ <Folder name="Efekt">
   <Folder name="lib">
    <File path="lib\terminal.d" />
   </Folder>

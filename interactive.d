@@ -98,7 +98,7 @@ final class Interactive
     void printBanner ()
     {
         printer.color(Color.cyan);
-        printer.println("Corelang interactive, enter \":help\" for list of commands.");
+        printer.println("Interactive of programming language Efekt, enter \":help\" for list of commands.");
         setEvalStrategy(EvalStrategy.throwing);
     }
 
