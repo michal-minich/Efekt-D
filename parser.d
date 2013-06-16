@@ -34,25 +34,51 @@ final class Parser
         Asi[] asis;
         while (true)
         {
-            bool replace;
-            asi = parseAsi(ParseContext.none, code2, asi, es, replace);
-            if (!asi)
-                break;
-            if (replace && asis.length)
-                asis[$ - 1] = asi;
-            else
+            asi = parseAsi(ParseContext.none, code2, asi, es);
+            if (asi)
                 asis ~= asi;
+            else
+                break;
         }
 
         return asis;
     }
 
 
+    Asi keepAsi;
     private Asi parseAsi (ParseContext ctx, ref dstring code, Asi prevAsi, 
-                         EvalStrategy es, out bool replace)
+                          EvalStrategy es)
     {
-        replace = false;
+        if (keepAsi)
+        {
+            auto ka = keepAsi;
+            keepAsi = null;
+            return ka;
+        }
 
+        bool replace = true;
+        auto asi = parseAsi2(ctx, code, prevAsi, es, replace);
+        prevAsi = asi;
+        while (true)
+        {
+            asi = parseAsi2(ctx, code, asi, es, replace);
+            if (!asi)
+            {
+                return prevAsi;
+            }
+            if (!replace)
+            {
+                keepAsi = asi;
+                return prevAsi;
+            }
+            prevAsi = asi;
+        }
+    }
+
+
+    private Asi parseAsi2 (ParseContext ctx, ref dstring code, Asi prevAsi, 
+                          EvalStrategy es, out bool replace)
+    {
         skipWhite(code);
 
         if (!code.length)
@@ -67,7 +93,7 @@ final class Parser
             if (matchOp(code, "="))
             {
                 remark.parser.varNameIsMissing();
-                auto val = parseAsi(ParseContext.var, code, null, es, _);
+                auto val = parseAsi(ParseContext.var, code, null, es);
                 auto exp = cast(Exp)val;
                 if (!val)
                 {
@@ -81,7 +107,7 @@ final class Parser
                 return new Var(new Assign ("<missing>", exp));
             }
                 
-            res = parseAsi(ParseContext.var, code, null, es, _);
+            res = parseAsi(ParseContext.var, code, null, es);
 
             auto ass = cast(Assign)res;
             if (ass)
@@ -116,8 +142,7 @@ final class Parser
             if (ctx != ParseContext.var && !mEq)
                 return ident;
 
-            bool _;
-            auto val = parseAsi(ParseContext.assign, code, null, es, _);
+            auto val = parseAsi(ParseContext.assign, code, null, es);
             if (!val)
             {
                 if (!mEq)
@@ -142,10 +167,9 @@ final class Parser
             return getIntOrErrFromString(m, es, hasError);
         }
         else if (auto m = match(code, &isOp))
-        {       
-            bool _;
+        {
             auto op1 = prevAsi;
-            auto op2 = parseAsi(ParseContext.op, code, null, es, _);
+            auto op2 = parseAsi(ParseContext.op, code, null, es);
 
             if (!prevAsi && !op2)
             {

@@ -52,14 +52,17 @@ final class Interactive
                     break;
 
                 case ":throwing":
+                case ":t":
                     setEvalStrategy(EvalStrategy.throwing);
                     break;
 
                 case ":strict":
+                case ":s":
                     setEvalStrategy(EvalStrategy.strict);
                     break;
 
                 case ":lax":
+                case ":l":
                     setEvalStrategy(EvalStrategy.lax);
                     break;
 

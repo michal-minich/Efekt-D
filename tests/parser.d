@@ -108,14 +108,17 @@ unittest
     testStr("var x = x + 1", "var x = x +  1");
     verifyRemarks();*/
 
-    testStr("var x = 1 + 2", "<error var x = 1> + 2");
-    verifyRemarks("expExpectedBeforeOpButStmFound");
+    testStr("var x = 1 + 2", "var x = 1 + 2");
+    verifyRemarks();
 
     testStr("2 + var x = 1", "2 + <error var x = 1>");
     verifyRemarks("expExpectedAfterOpButStmFound");
 
-    testStr("var x = 1 + var x = 2", "<error var x = 1> + <error var x = 2>");
-    verifyRemarks("opBetweenStatements");
+    testStr("var x = 1 + var x = 2", "var x = 1 + <error var x = 2>");
+    verifyRemarks("expExpectedAfterOpButStmFound");
+
+    //testStr("?");
+    //verifyRemarks("opBetweenStatements");
 
 
     testStr("9223372036854775807", "9223372036854775807");
