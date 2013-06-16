@@ -1,39 +1,9 @@
 module interpreter;
 
-import utils, common, ast, remarks, exceptions;
+import utils, common, ast, remarks, exceptions, operators;
 
 @safe nothrow:
 
-
-alias opFn = Exp function (EvalStrategy, Thrower, Exp, Exp);
-
-private opFn[dstring] ops;
-
-
-static this ()
-{
-    ops = ["+"d : &plus];
-}
-
-
-@trusted Exp plus (EvalStrategy es, Thrower th, Exp op1, Exp op2)
-{
-    immutable o1 = sureCast!Int(op1).asLong;
-    immutable o2 = sureCast!Int(op2).asLong;
-    auto res = o1 + o2;
-    asm { jo overflowed; }
-    return new Int(res);
-    overflowed:
-    if (es == EvalStrategy.throwing)
-    {
-        th.integerOwerflow();
-        return null;
-    }
-    else if (es == EvalStrategy.strict)
-        return new Int(res);
-    else
-        return new Int(long.max);
-}
 
 
 final class Interpreter // : AsiVisitor!Asi

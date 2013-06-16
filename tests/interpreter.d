@@ -30,17 +30,20 @@ unittest
         auto asis = p.parse(code, es);
 
         if (p.hasError && EvalStrategy.throwing)
-            check(expected is null, "Nothing expected when parser has error and es == throwing");
+            check(expected is null, "Nothing expected when parser has error " ~
+                  "and es == throwing '" ~ code ~ "'");
 
         auto res = interpreter.run(asis, es);
         if (res)
         {
             res.accept(ap);
-            check(sp.str == expected, "Evaluated other than expected value.");
+            check(sp.str == expected, "Evaluation Failed '" ~
+                  code ~ "' -> '" ~ sp.str ~ "' != '" ~ expected ~ "'");
         }
         else
         {
-            check(expected is null, "Expected nothing");
+            check(expected is null, "Expected nothing'" ~
+                  code ~ "' -> '" ~ sp.str ~ "'");
         }
     }
 
@@ -96,6 +99,8 @@ unittest
 
     evalTest("9223372036854775806 + 2", null, EvalStrategy.throwing);
     verifyExceptions("integerOwerflow");
+
+    evalTest("0 - 9223372036854775807", "-9223372036854775807");
 
     evalTest("", null);
 }
