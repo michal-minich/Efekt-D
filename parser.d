@@ -58,13 +58,13 @@ final class Parser
         if (!code.length)
             return null;
 
-        if (matchWithWhite(code, "var"))
+        if (matchIdent(code, "var"))
         {
             bool _;
             Asi res;
 
             skipWhite(code);
-            if (matchWithWhite(code, "="))
+            if (matchOp(code, "="))
             {
                 remark.parser.varNameIsMissing();
                 auto val = parseAsi(ParseContext.var, code, null, es, _);
@@ -111,7 +111,7 @@ final class Parser
         {
             auto ident = new Ident(m);
             skipWhite(code);
-            auto mEq = matchWithWhite(code, "=");
+            auto mEq = matchOp(code, "=");
 
             if (ctx != ParseContext.var && !mEq)
                 return ident;
@@ -283,7 +283,7 @@ dstring match(ref dstring code, const dstring s)
 
 
 
-dstring matchWithWhite(ref dstring code, const dstring s)
+dstring matchIdent(ref dstring code, const dstring s)
 {
     if (code.length < s.length)
         return null;
@@ -295,7 +295,27 @@ dstring matchWithWhite(ref dstring code, const dstring s)
 
     code = code[s.length .. $];
 
-    if (!code.length || (code.length && code[0].isWhite()))
+    if (!code.length || (code.length && !code[0].isIdent()))
+        return m;
+
+    return null;
+}
+
+
+
+dstring matchOp(ref dstring code, const dstring s)
+{
+    if (code.length < s.length)
+        return null;
+
+    if (code[0 .. s.length] != s)
+        return null;
+
+    auto m = code[0 .. s.length];
+
+    code = code[s.length .. $];
+
+    if (!code.length || (code.length && !code[0].isOp()))
         return m;
 
     return null;

@@ -37,7 +37,7 @@ void verifyRemarks(dstring code, bool hasError, RemarkCollector rc, dstring[] na
     if (rc.remarks.length == names.length)
     {
         foreach (ix, n; names)
-            check(rc.remarks[ix].name == n, "Other remark found '"
+            check(rc.remarks[ix].name == n, "Other remark found '" ~ code ~ "' -> '"
                   ~ rc.remarks[ix].name ~ "' != '" ~ n ~ "'");
     }
     else
@@ -58,7 +58,7 @@ void verifyExceptions(dstring code, ExceptionCollector ec, dstring[] names ...)
     if (ec.exceptions.length == names.length)
     {
         foreach (ix, n; names)
-            check(ec.exceptions[ix].name == n, "Other exception found '"
+            check(ec.exceptions[ix].name == n, "Other exception found '" ~ code ~ "' -> '"
                   ~ ec.exceptions[ix].name ~ "' != '" ~ n ~ "'");
     }
     else

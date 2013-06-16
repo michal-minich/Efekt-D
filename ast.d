@@ -13,6 +13,7 @@ interface AsiVisitor (R)
     R visit (Missing);
     R visit (Err);
     R visit (Ident);
+    R visit (Assign);
     R visit (Int);
     R visit (OpApply);
 }
@@ -30,6 +31,15 @@ abstract class  Asi
     Asi accept (Interpreter);
     nothrow:
     void accept (AsiPrinter);
+    @property asStm () { return cast(Stm)this; }
+    @property asExp () { return cast(Stm)this; }
+    @property asVar () { return cast(Var)this; }
+    @property asMissing () { return cast(Missing)this; }
+    @property asErr () { return cast(Err)this; }
+    @property asIdent () { return cast(Ident)this; }
+    @property asAssign () { return cast(Assign)this; }
+    @property asInt () { return cast(Int)this; }
+    @property asOpApply () { return cast(OpApply)this; }
 }
 
 
@@ -51,6 +61,16 @@ class Var : Stm
     nothrow:
     Exp exp; // Ident | Assign
     this (Exp exp) { this.exp = exp; }
+    @property dstring name ()
+    {
+        auto i = exp.asIdent;
+        if (i)
+            return i.name;
+        auto a = exp.asAssign;
+        if (a)
+            return a.name;
+        return null;
+    }
 }
 
 

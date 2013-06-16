@@ -14,7 +14,7 @@ import std.stdio, std.conv;
 }
 
 
-@trusted dstring toDString (T) (T a) 
+@trusted dstring toDString (T) (const T a) 
     if (is (T == enum) || is (T == string) ||is (T == long) || is (T == size_t))
 {
     try
@@ -24,7 +24,7 @@ import std.stdio, std.conv;
 }
 
 
-@trusted string toString (dstring s) 
+@trusted string toString (const dstring s) 
 {
     try
         return s.to!string();
@@ -33,7 +33,7 @@ import std.stdio, std.conv;
 }
 
 
-@trusted string toString (size_t s) 
+@trusted string toString (const size_t s) 
 {
     try
         return s.to!string();
@@ -42,7 +42,7 @@ import std.stdio, std.conv;
 }
 
 
-@trusted B sureCast (B, A) (A a)
+@trusted pure B sureCast (B, A) (A a)
 {
     debug
     {
@@ -67,7 +67,7 @@ debug @trusted void dbg (Args...) (Args args)
 }
 
 
-size_t lastIndexOf (string items, char item)
+pure size_t lastIndexOf (const string items, char item)
 {
     foreach_reverse (ix, i; items)
         if (i == item)
@@ -77,7 +77,17 @@ size_t lastIndexOf (string items, char item)
 }
 
 
-string lastItemInList (string list, char separator)
+pure string lastItemInList (const string list, char separator)
 {
     return list[list.lastIndexOf(separator) + 1 .. $];
+}
+
+
+pure size_t count (T, U) (const T[] items, const U item)
+{
+    size_t c;
+    foreach (i; items)
+        if (i == item)
+            ++c;
+    return c;
 }

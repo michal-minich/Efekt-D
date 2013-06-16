@@ -24,11 +24,11 @@ final class Interpreter // : AsiVisitor!Asi
         this.es = es;
         thrower.evalStrategy = es;
 
-        assert (asis.length == 1);
-
         try
         {
-            return asis[0].accept(this);
+            foreach (a; asis[0 .. $ - 1])
+                a.accept(this);
+            return asis[$ - 1].accept(this);
         }
         catch (InterpreterException ex)
         {

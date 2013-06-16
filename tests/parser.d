@@ -1,6 +1,6 @@
 module tests.parser;
 
-import tests.utils, remarks, parser;
+import utils, tests.utils, remarks, parser;
 
 @safe nothrow:
 
@@ -23,6 +23,12 @@ unittest
 
         sp.clear();
         auto asis = p.parse(code, es);
+
+        auto expectedAsisCount = (expected ? code.count('\n') + 1 : 0);
+        check (asis.length == expectedAsisCount,
+               "Invalid number of Asis '" ~ code ~ "' -> " ~
+               asis.length.toDString() ~ " != " ~ expectedAsisCount.toDString());
+
         if (asis)
         {
             asis[0].accept(ap);

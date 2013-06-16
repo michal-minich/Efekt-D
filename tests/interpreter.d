@@ -1,6 +1,6 @@
 module tests.interpreter;
 
-import tests.utils, remarks, exceptions, interpreter;
+import utils, tests.utils, remarks, exceptions, interpreter;
 
 @safe nothrow:
 
@@ -29,9 +29,19 @@ unittest
         sp.clear();
         auto asis = p.parse(code, es);
 
-        if (p.hasError && EvalStrategy.throwing)
+        if (es == EvalStrategy.throwing && p.hasError)
+        {
             check(expected is null, "Nothing expected when parser has error " ~
                   "and es == throwing '" ~ code ~ "'");
+        }
+        
+        if (!(es == EvalStrategy.throwing && expected is null))
+        {
+            auto expectedAsisCount = (expected ? code.count('\n') + 1 : 0);
+            check (asis.length == expectedAsisCount,
+                    "Invalid number of Asis '" ~ code ~ "' -> " ~
+                   asis.length.toDString() ~ " != " ~ expectedAsisCount.toDString());
+        }
 
         auto res = interpreter.run(asis, es);
         if (res)
