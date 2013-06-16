@@ -14,9 +14,11 @@ unittest
     auto sp = new StringPrinter;
     auto ap = new printer.AsiPrinter(sp);
     auto p = new Parser;
+    dstring code2;
 
     void testStr(dstring code, dstring expected, EvalStrategy es = EvalStrategy.strict)
     {
+        code2 = code;
         check(!rc.remarks.length, "Previous test has unverified remarks");
 
         sp.clear();
@@ -34,9 +36,8 @@ unittest
     }
 
 
-    void verifyRemarks(dstring[] names ...) { tests.utils.verifyRemarks(p.hasError, rc, names); }
+    void verifyRemarks(dstring[] names ...) { tests.utils.verifyRemarks(code2, p.hasError, rc, names); }
     void ignoreRemarks() { rc.clear(); }
-
 
     testStr("", null);
     testStr("1", "1");
@@ -58,12 +59,12 @@ unittest
     testStr("1+", "1 + <missing>");
     verifyRemarks("expExpectedAfterOp");
 
-    testStr("var", null);
+    testStr("var", "var <missing>");
     verifyRemarks("varNameIsMissing");
 
-     // this should have no remark, or either result should be "var x = <missing>"
     testStr("var x", "var x");
-    verifyRemarks("varEqualsIsMissing");
+    verifyRemarks();
+    
 
     testStr("var x 1", "var x = 1");
     verifyRemarks("varEqualsIsMissing");
@@ -74,21 +75,32 @@ unittest
     testStr("var x = var x = 1", "var x = <error var x = 1>");
     verifyRemarks("varValueIsNotExp");
 
-    testStr("var 1", "<error var <missing> = 1>");
+    testStr("var 1", "var <missing> = 1");
     verifyRemarks("expOrStmInsteadOfVarNameFound");
 
-    testStr("var = 1", "<error 1>");
+    testStr("var = 1", "var <missing> = 1");
     verifyRemarks("varNameIsMissing");
 
+    /*testStr("var var", "var <missing>\nvar <missing>");
+    verifyRemarks();
 
-    // var var
-    // var var x
-    // var var x = 1
-    // var x var x
-    // var x var x = 1
-    // var x x
-    // var x = x
+    testStr("var var x", "var <missing>\nvar x");
+    verifyRemarks();
 
+    testStr("var var x = 1", "<var <missing>\nvar x = 1");
+    verifyRemarks();
+
+    testStr("var x var x", "var x\nvar x");
+    verifyRemarks();
+
+    testStr("var x x", "var x = x");
+    verifyRemarks();
+
+    testStr("var x = x", "var x = x");
+    verifyRemarks();
+
+    testStr("var x = x + 1", "var x = x +  1");
+    verifyRemarks();*/
 
     testStr("var x = 1 + 2", "<error var x = 1> + 2");
     verifyRemarks("expExpectedBeforeOpButStmFound");

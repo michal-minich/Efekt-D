@@ -57,6 +57,7 @@ final class InterpreterException : Exception
 final class Thrower
 {
     private IExceptionPrinter ep;
+    EvalStrategy evalStrategy;
 
     nothrow this (IExceptionPrinter ep) { this.ep = ep; }
 
@@ -65,7 +66,8 @@ final class Thrower
     {
         auto lastName = lastItemInList(name, '.');
         ep.print(Except(lastName.toDString(), text));
-        throw new InterpreterException("[" ~ lastName ~ "] " ~ text.toString());
+        if (evalStrategy == EvalStrategy.throwing)
+            throw new InterpreterException("[" ~ lastName ~ "] " ~ text.toString());
     }
 
 

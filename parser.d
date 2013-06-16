@@ -6,6 +6,15 @@ import utils, common, ast, remarks;
 @safe nothrow:
 
 
+private enum ParseContext
+{
+    none,
+    var,
+    assign,
+    op,
+}
+
+
 final class Parser
 {
     nothrow:
@@ -26,7 +35,7 @@ final class Parser
         while (true)
         {
             bool replace;
-            asi = parseAsi(code2, asi, es, replace);
+            asi = parseAsi(ParseContext.none, code2, asi, es, replace);
             if (!asi)
                 break;
             if (replace && asis.length)
@@ -39,7 +48,8 @@ final class Parser
     }
 
 
-    private Asi parseAsi (ref dstring code, Asi prevAsi, EvalStrategy es, out bool replace)
+    private Asi parseAsi (ParseContext ctx, ref dstring code, Asi prevAsi, 
+                         EvalStrategy es, out bool replace)
     {
         replace = false;
 
@@ -51,60 +61,81 @@ final class Parser
         if (matchWithWhite(code, "var"))
         {
             bool _;
-            Asi name;
+            Asi res;
 
             skipWhite(code);
-            if (!matchWithWhite(code, "="))
-                name = parseAsi(code, null, es, _);
-
-            auto ident = cast(Ident)name;
-
-            if (!name)
+            if (matchWithWhite(code, "="))
             {
                 remark.parser.varNameIsMissing();
-                return null;
-            }
-            else if (!ident)
-            {
-                remark.parser.expOrStmInsteadOfVarNameFound();
-                auto e = cast(Exp)name;
-                if (e)
-                    return new Err(new Var("<missing>", e));
-                else
-                    return new Err(new Var("<missing>", new Err(e)));
-            }
-            else
-            {
-                skipWhite(code);
-                bool hasEq = true;
-                if (!matchWithWhite(code, "="))
-                {
-                    hasEq = false;
-                    remark.parser.varEqualsIsMissing();
-                }
-                
-                auto val = parseAsi(code, null, es, _);
+                auto val = parseAsi(ParseContext.var, code, null, es, _);
                 auto exp = cast(Exp)val;
                 if (!val)
                 {
-                    if (hasEq)
-                    {
-                        remark.parser.varValueIsMissing();
-                        exp = new Missing;
-                    }
+                    exp = new Missing;
                 }
                 else if (!exp)
                 {
                     remark.parser.varValueIsNotExp();
                     exp = new Err(val);
                 }
-
-                return new Var(ident.name, exp);
+                return new Var(new Assign ("<missing>", exp));
             }
+                
+            res = parseAsi(ParseContext.var, code, null, es, _);
+
+            auto ass = cast(Assign)res;
+            if (ass)
+                return new Var(ass);
+
+            auto ident = cast(Ident)res;
+            if (ident)
+                return new Var(ident);
+        
+            auto exp = cast(Exp)res;
+            if (exp)
+            {
+                remark.parser.expOrStmInsteadOfVarNameFound();
+                return new Var(new Assign("<missing>", exp));
+            }
+
+            if (res)
+            {
+                remark.parser.expOrStmInsteadOfVarNameFound();
+                return new Var(new Assign("<missing>", new Err(res)));
+            }
+
+            remark.parser.varNameIsMissing();
+            return new Var(new Ident("<missing>"));
         }
         else if (auto m = match(code, &isIdent))
         {
-            return new Ident(m);
+            auto ident = new Ident(m);
+            skipWhite(code);
+            auto mEq = matchWithWhite(code, "=");
+
+            if (ctx != ParseContext.var && !mEq)
+                return ident;
+
+            bool _;
+            auto val = parseAsi(ParseContext.assign, code, null, es, _);
+            if (!val)
+            {
+                if (!mEq)
+                    return ident;
+
+                remark.parser.varValueIsMissing();
+                return new Assign(ident.name, new Missing);
+            }
+
+            if (!mEq)
+                remark.parser.varEqualsIsMissing();
+
+            auto exp = cast(Exp)val;
+            if (exp)
+                return new Assign(ident.name, exp);
+
+            remark.parser.varValueIsNotExp();
+            return new Assign(ident.name, new Err(val));
         }
         else if (auto m = match(code, &isInt))
         {
@@ -114,7 +145,7 @@ final class Parser
         {       
             bool _;
             auto op1 = prevAsi;
-            auto op2 = parseAsi(code, null, es, _);
+            auto op2 = parseAsi(ParseContext.op, code, null, es, _);
 
             if (!prevAsi && !op2)
             {

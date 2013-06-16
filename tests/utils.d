@@ -29,28 +29,45 @@ import utils, exceptions, remarks;
 }
 
 
-void verifyRemarks(bool hasError, RemarkCollector rc, dstring[] names ...)
+void verifyRemarks(dstring code, bool hasError, RemarkCollector rc, dstring[] names ...)
 {
     if (hasError)
         assert(names.length, "Parser is expected to have some remarks when it has error");
 
-    assert(rc.remarks.length == names.length);
-    foreach (ix, n; names)
-        check(rc.remarks[ix].name == n, "Other remark found '"
-              ~ rc.remarks[ix].name ~ "' != '" ~ n ~ "'");
+    if (rc.remarks.length == names.length)
+    {
+        foreach (ix, n; names)
+            check(rc.remarks[ix].name == n, "Other remark found '"
+                  ~ rc.remarks[ix].name ~ "' != '" ~ n ~ "'");
+    }
+    else
+    {
+        dbg("Expected " ~ names.length.toDString() ~ " remarks," ~
+            "found " ~ rc.remarks.length.toDString() ~ " '" ~ code ~ "'");
+        foreach (r; rc.remarks)
+            dbg("\t", r.name);
+    }
+
 
     rc.clear();
-    assert(!rc.remarks.length);
 }
 
 
-void verifyExceptions(ExceptionCollector ec, dstring[] names ...)
+void verifyExceptions(dstring code, ExceptionCollector ec, dstring[] names ...)
 {
-    assert(ec.exceptions.length == names.length);
-    foreach (ix, n; names)
-        check(ec.exceptions[ix].name == n, "Other exception found '"
-              ~ ec.exceptions[ix].name ~ "' != '" ~ n ~ "'");
+    if (ec.exceptions.length == names.length)
+    {
+        foreach (ix, n; names)
+            check(ec.exceptions[ix].name == n, "Other exception found '"
+                  ~ ec.exceptions[ix].name ~ "' != '" ~ n ~ "'");
+    }
+    else
+    {
+        dbg("Expected " ~ names.length.toDString() ~ " exceptions," ~
+            "found " ~ ec.exceptions.length.toDString() ~ " '" ~ code ~ "'");
+        foreach (e; ec.exceptions)
+            dbg("\t", e.name);
+    }
 
     ec.clear();
-    assert(!ec.exceptions.length);
 }

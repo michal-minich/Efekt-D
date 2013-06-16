@@ -1,6 +1,6 @@
 module utils;
 
-import std.conv;
+import std.stdio, std.conv;
 
 @safe nothrow:
 
@@ -15,7 +15,7 @@ import std.conv;
 
 
 @trusted dstring toDString (T) (T a) 
-    if (is (T == enum) || is (T == string)||is (T == long))
+    if (is (T == enum) || is (T == string) ||is (T == long) || is (T == size_t))
 {
     try
         return a.to!dstring();
@@ -25,6 +25,15 @@ import std.conv;
 
 
 @trusted string toString (dstring s) 
+{
+    try
+        return s.to!string();
+    catch (Exception ex)
+        assert (false, ex.toString());
+}
+
+
+@trusted string toString (size_t s) 
 {
     try
         return s.to!string();

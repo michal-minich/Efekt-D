@@ -52,6 +52,7 @@ final class Interpreter // : AsiVisitor!Asi
             return null;
 
         this.es = es;
+        thrower.evalStrategy = es;
 
         assert (asis.length == 1);
 
@@ -78,8 +79,17 @@ final class Interpreter // : AsiVisitor!Asi
 
     Var visit (Var v)
     {
-        auto val = v.value ? eval(v.value) : new Missing;
-        vars[v.name] = val;
+        auto ass = cast(Assign)v.exp;
+        if (ass)
+        {
+            vars[ass.name] = new Missing;
+            ass.accept(this);
+        }
+        else
+        {
+            auto ident = cast(Ident)v.exp;
+            vars[ident.name] = new Missing;
+        }
         return null;
     }
 
@@ -111,8 +121,24 @@ final class Interpreter // : AsiVisitor!Asi
         thrower.undefinedVariable(i.name);
         return new Missing;
     }
-    
 
+
+    Exp visit (Assign a)
+    {
+        auto val = eval(a.value);
+        auto var = a.name in vars;
+        if (var)
+            *var = val;
+        else
+        {
+            thrower.undefinedVariable(a.name);
+            vars[a.name] = val;
+        }
+
+        return val;
+    }
+
+    
     Int visit (Int i) { return i; }
 
 
@@ -190,11 +216,12 @@ final class Interpreter // : AsiVisitor!Asi
         auto opfn = opa.op in ops;
         if (opfn)
             return (*opfn)(es, thrower, o1, o2);
-        
+
+        thrower.opeatorIsUndefined (opa.op);
+
         final switch (es) with (EvalStrategy)
         {
             case throwing:
-                thrower.opeatorIsUndefined (opa.op);
                 return null;
             case strict:
                 return new Err(opa);

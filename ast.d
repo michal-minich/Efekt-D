@@ -49,9 +49,8 @@ class Var : Stm
 {
     mixin Acceptors!();
     nothrow:
-    dstring name;
-    Exp value;
-    this (dstring name, Exp value) { this.name = name; this.value = value; }
+    Exp exp; // Ident | Assign
+    this (Exp exp) { this.exp = exp; }
 }
 
 
@@ -68,6 +67,7 @@ class Err : Exp
     nothrow:
     Asi asi;
     this (Asi asi) { this.asi = asi; }
+    //invariant () { assert(asi !is null); }
 }
 
 
@@ -78,6 +78,17 @@ final class Ident : Exp
     dstring name;
     this (dstring name) { this.name = name; }
 }
+
+
+class Assign : Exp
+{
+    mixin Acceptors!();
+    nothrow:
+    dstring name;
+    Exp value;
+    this (dstring name, Exp value) { this.name = name; this.value = value; }
+}
+
 
 
 final class Int : Exp

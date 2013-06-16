@@ -18,9 +18,11 @@ unittest
     auto ec = new ExceptionCollector;
     auto interpreter = new Interpreter(new Thrower(ec));
     auto p = new Parser;
+    dstring code2;
 
     void evalTest(dstring code, dstring expected, EvalStrategy es = EvalStrategy.throwing)
     {
+        code2 = code;
         check(!rc.remarks.length, "Previous test has unverified remarks");
         check(!ec.exceptions.length, "Previous test has unverified exceptions");
 
@@ -43,9 +45,9 @@ unittest
     }
 
 
-    void verifyRemarks(dstring[] names ...) { tests.utils.verifyRemarks(p.hasError, rc, names); }
+    void verifyRemarks(dstring[] names ...) { tests.utils.verifyRemarks(code2, p.hasError, rc, names); }
     void ignoreRemarks() { rc.clear(); }
-    void verifyExceptions(dstring[] names ...) { tests.utils.verifyExceptions(ec, names); }
+    void verifyExceptions(dstring[] names ...) { tests.utils.verifyExceptions(code2, ec, names); }
     void ignoreExceptions() { ec.clear(); }
 
 
