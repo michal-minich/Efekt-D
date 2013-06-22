@@ -37,7 +37,7 @@ final class Interactive
 
             auto ln = reader.readln()[0 .. $ - 1]/*trim \n*/;
 
-            switch (ln)
+            switch (ln) // todo ignore case compare
             {
                 case ":q":
                 case ":quit":
@@ -101,8 +101,11 @@ final class Interactive
     void printBanner ()
     {
         printer.color(Color.cyan);
-        printer.println("Interactive of programming language Efekt, enter \":help\" for list of commands.");
-        setEvalStrategy(EvalStrategy.throwing);
+        printer.print("Programming language ");
+        printer.color(Color.cyan, true);
+        printer.println("Efekt");
+        printer.color(Color.cyan);
+        printer.println("Enter \":help\" for list of commands.");
     }
 
 

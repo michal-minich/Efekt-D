@@ -15,6 +15,21 @@ final class AsiPrinter : AsiVisitor!void
 
     this (IPrinter printer) { this.printer = printer; }
 
+    
+    void print (Asi[] asis)
+    {
+        if (!asis)
+            return;
+
+        foreach (a; asis[0 ..$ - 1])
+        {
+            a.accept(this);
+            printer.println();
+        }
+
+        asis[$ - 1].accept(this);
+    }
+
 
     void visit (Var v)
     {

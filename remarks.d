@@ -88,13 +88,11 @@ final class ParserRemarks
             "Expression expected before operator");
     }
 
-
     void expExpectedAfterOp ()
     {
         r(RemarkSeverity.error, __FUNCTION__, 
             "Expression expected after operator");
     }
-
     
     void expExpectedBeforeOpButStmFound ()
     {
@@ -102,13 +100,11 @@ final class ParserRemarks
             "Expression expected before operator, not statement");
     }
 
-
     void expExpectedAfterOpButStmFound ()
     {
         r(RemarkSeverity.error, __FUNCTION__, 
             "Expression expected after operator, not statement");
     }
-
 
     void opBetweenStatements ()
     {
@@ -116,13 +112,11 @@ final class ParserRemarks
           "Operator should be placed between expressions, not statements");
     }
 
-
     void opWithoutOperands ()
     {
         r(RemarkSeverity.error, __FUNCTION__, 
             "Expression expected before and after operator");
     }
-
 
     void numberNotInRange ()
     {
@@ -130,13 +124,11 @@ final class ParserRemarks
             "Number must be in range 0 - 9'223 372 036'854 775 807");
     }
 
-
     void unexpectedChar ()
     {
         r(RemarkSeverity.error, __FUNCTION__, 
           "Unexpected character");
     }
-
 
     void varNameIsMissing ()
     {
@@ -144,13 +136,11 @@ final class ParserRemarks
           "Variable name is missing");
     }
 
-
     void expOrStmInsteadOfVarNameFound ()
     {
         r(RemarkSeverity.error, __FUNCTION__, 
           "Variable name was expected, but expression or statement found");
     }
-
 
     void varEqualsIsMissing ()
     {
@@ -158,13 +148,11 @@ final class ParserRemarks
           "Expected equals and expression to be assigned to value");
     }
 
-
     void varValueIsMissing ()
     {
         r(RemarkSeverity.error, __FUNCTION__, 
           "Expected expression after equal sign");
     }
-
 
     void varValueIsNotExp ()
     {

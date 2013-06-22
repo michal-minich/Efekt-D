@@ -40,7 +40,7 @@
   <checkProperty>1</checkProperty>
   <genStackFrame>1</genStackFrame>
   <pic>0</pic>
-  <cov>0</cov>
+  <cov>1</cov>
   <nofloat>0</nofloat>
   <Dversion>2</Dversion>
   <ignoreUnsupportedPragmas>0</ignoreUnsupportedPragmas>
@@ -90,8 +90,8 @@
   <exefile>$(OutDir)\$(ProjectName).exe</exefile>
   <useStdLibPath>1</useStdLibPath>
   <additionalOptions />
-  <preBuildCommand />
-  <postBuildCommand />
+  <preBuildCommand>call prebuild.bat</preBuildCommand>
+  <postBuildCommand>call postbuild.bat</postBuildCommand>
   <filesToClean>*.obj;*.cmd;*.build;*.json;*.dep</filesToClean>
  </Config>
  <Config name="Release" platform="Win32">

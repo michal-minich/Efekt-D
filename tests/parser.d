@@ -31,7 +31,7 @@ unittest
 
         if (asis)
         {
-            asis[0].accept(ap);
+            ap.print(asis);
             check(sp.str == expected, "Parsed other than expected value '"
                   ~ code ~ "' -> '"~ sp.str ~ "' != '" ~ expected ~ "'");
         }
@@ -127,6 +127,17 @@ unittest
 
     testStr("9223372036854775808", "<error>");
     verifyRemarks("numberNotInRange");
+
+    testStr("var x\nx\nx", "var x\nx\nx");
+
+    //testStr("var x = 4\nx\nx", "var x = 4\nx\nx");
+    //verifyRemarks();
+
+    //testStr("1\nvar x = 2", "1\nvar x = 2");
+    //verifyRemarks();
+
+    //testStr("1 + 3\nvar x = 2\nx\nx = 1", "1 + 3\nvar x = 2\nx\nx = 1");
+    //verifyRemarks();
 
     testStr("1", "1");
 }

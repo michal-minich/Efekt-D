@@ -6,7 +6,7 @@ import utils, common, ast, remarks, exceptions, operators;
 
 
 
-final class Interpreter // : AsiVisitor!Asi
+final class Interpreter : AsiVisitorThrowing!Asi
 {
     private EvalStrategy es;
     private Thrower thrower;

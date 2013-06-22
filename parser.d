@@ -20,11 +20,12 @@ final class Parser
     nothrow:
 
     bool hasError;
+    bool wasNewline;
 
     Asi[] parse (dstring code, EvalStrategy es)
     {
         if (!code.length)
-            return [];
+            return null;
 
         auto code2 = code;
 
@@ -34,7 +35,7 @@ final class Parser
         Asi[] asis;
         while (true)
         {
-            asi = parseAsi(ParseContext.none, code2, asi, es);
+            asi = parseAsi(ParseContext.none, code2, asi, es, false);
             if (asi)
                 asis ~= asi;
             else
@@ -45,40 +46,52 @@ final class Parser
     }
 
 
-    Asi keepAsi;
+    Asi afterReplaceAsi;
     private Asi parseAsi (ParseContext ctx, ref dstring code, Asi prevAsi, 
-                          EvalStrategy es)
+                          EvalStrategy es, bool onSameLineOnly = false)
     {
-        if (keepAsi)
+        bool replace = true;
+        Asi asi;
+
+        if (afterReplaceAsi)
         {
-            auto ka = keepAsi;
-            keepAsi = null;
-            return ka;
+            asi = afterReplaceAsi;
+            afterReplaceAsi = null;
+        }
+        else
+        {
+            asi = parseOneAsi(ctx, code, prevAsi, es, onSameLineOnly, replace);
         }
 
-        bool replace = true;
-        auto asi = parseAsi2(ctx, code, prevAsi, es, replace);
+        if (!asi)
+            return null;
+
         prevAsi = asi;
+
         while (true)
         {
-            asi = parseAsi2(ctx, code, asi, es, replace);
+            asi = parseOneAsi(ctx, code, asi, es, onSameLineOnly, replace);
+
             if (!asi)
             {
                 return prevAsi;
             }
-            if (!replace)
+            else if (!replace)
             {
-                keepAsi = asi;
+                afterReplaceAsi = asi;
                 return prevAsi;
             }
+
             prevAsi = asi;
         }
     }
 
 
-    private Asi parseAsi2 (ParseContext ctx, ref dstring code, Asi prevAsi, 
-                          EvalStrategy es, out bool replace)
+    private Asi parseOneAsi (ParseContext ctx, ref dstring code, Asi prevAsi, 
+                             EvalStrategy es, bool onSameLineOnly, out bool replace)
     {
+        again:
+
         skipWhite(code);
 
         if (!code.length)
@@ -86,81 +99,11 @@ final class Parser
 
         if (matchIdent(code, "var"))
         {
-            bool _;
-            Asi res;
-
-            skipWhite(code);
-            if (matchOp(code, "="))
-            {
-                remark.parser.varNameIsMissing();
-                auto val = parseAsi(ParseContext.var, code, null, es);
-                auto exp = cast(Exp)val;
-                if (!val)
-                {
-                    exp = new Missing;
-                }
-                else if (!exp)
-                {
-                    remark.parser.varValueIsNotExp();
-                    exp = new Err(val);
-                }
-                return new Var(new Assign ("<missing>", exp));
-            }
-                
-            res = parseAsi(ParseContext.var, code, null, es);
-
-            auto ass = cast(Assign)res;
-            if (ass)
-                return new Var(ass);
-
-            auto ident = cast(Ident)res;
-            if (ident)
-                return new Var(ident);
-        
-            auto exp = cast(Exp)res;
-            if (exp)
-            {
-                remark.parser.expOrStmInsteadOfVarNameFound();
-                return new Var(new Assign("<missing>", exp));
-            }
-
-            if (res)
-            {
-                remark.parser.expOrStmInsteadOfVarNameFound();
-                return new Var(new Assign("<missing>", new Err(res)));
-            }
-
-            remark.parser.varNameIsMissing();
-            return new Var(new Ident("<missing>"));
+            return parseVar(ctx, code, prevAsi, es, onSameLineOnly, replace);
         }
         else if (auto m = match(code, &isIdent))
         {
-            auto ident = new Ident(m);
-            skipWhite(code);
-            auto mEq = matchOp(code, "=");
-
-            if (ctx != ParseContext.var && !mEq)
-                return ident;
-
-            auto val = parseAsi(ParseContext.assign, code, null, es);
-            if (!val)
-            {
-                if (!mEq)
-                    return ident;
-
-                remark.parser.varValueIsMissing();
-                return new Assign(ident.name, new Missing);
-            }
-
-            if (!mEq)
-                remark.parser.varEqualsIsMissing();
-
-            auto exp = cast(Exp)val;
-            if (exp)
-                return new Assign(ident.name, exp);
-
-            remark.parser.varValueIsNotExp();
-            return new Assign(ident.name, new Err(val));
+            return parseIdentOrAssign(ctx, code, prevAsi, es, onSameLineOnly, m);
         }
         else if (auto m = match(code, &isInt))
         {
@@ -168,52 +111,156 @@ final class Parser
         }
         else if (auto m = match(code, &isOp))
         {
-            auto op1 = prevAsi;
-            auto op2 = parseAsi(ParseContext.op, code, null, es);
+            return parseOpApply(ctx, code, prevAsi, es, onSameLineOnly, replace, m);
+        }
 
-            if (!prevAsi && !op2)
-            {
-                remark.parser.opWithoutOperands();
-                op1 = new Missing;
-                op2 = new Missing;
-            }
-            else if (!prevAsi)
-            {
-                remark.parser.expExpectedBeforeOp();
-                op1 = new Missing;
-            }
-            else if (!op2)
-            {
-                remark.parser.expExpectedAfterOp();
-                op2 = new Missing;
-            }
-
-            auto stm1 = cast(Stm)prevAsi;
-            auto stm2 = cast(Stm)op2;
-
-            if (stm1 && stm2)
-            {
-                remark.parser.opBetweenStatements();
-                op1 = new Err(stm1);
-                op2 = new Err(stm2);
-            }
-            else if (stm1)
-            {
-                remark.parser.expExpectedBeforeOpButStmFound();
-                op1 = new Err(stm1);
-            }
-            else if (stm2)
-            {
-                remark.parser.expExpectedAfterOpButStmFound();
-                op2 = new Err(stm2);
-            }
-
-            replace = true;
-            return new OpApply(m, sureCast!Exp(op1), sureCast!Exp(op2));
+        if (code.length && code[0] =='\n')
+        {
+            code = code[1 .. $];
+            if (ctx == ParseContext.none)
+                goto again;
+            return null;
         }
 
         remark.parser.unexpectedChar();
         return null;
+    }
+
+
+    private:
+
+
+    Asi parseVar (ParseContext ctx, ref dstring code, Asi prevAsi, 
+                  EvalStrategy es, bool onSameLineOnly, out bool replace)
+    {
+        bool _;
+        Asi res;
+
+        skipWhite(code);
+        if (matchOp(code, "="))
+        {
+            remark.parser.varNameIsMissing();
+            auto val = parseAsi(ParseContext.var, code, null, es, true);
+            auto exp = cast(Exp)val;
+            if (!val)
+            {
+                exp = new Missing;
+            }
+            else if (!exp)
+            {
+                remark.parser.varValueIsNotExp();
+                exp = new Err(val);
+            }
+            return new Var(new Assign ("<missing>", exp));
+        }
+                
+        res = parseAsi(ParseContext.var, code, null, es);
+
+        auto ass = cast(Assign)res;
+        if (ass)
+            return new Var(ass);
+
+        auto ident = cast(Ident)res;
+        if (ident)
+            return new Var(ident);
+        
+        auto exp = cast(Exp)res;
+        if (exp)
+        {
+            remark.parser.expOrStmInsteadOfVarNameFound();
+            return new Var(new Assign("<missing>", exp));
+        }
+
+        if (res)
+        {
+            remark.parser.expOrStmInsteadOfVarNameFound();
+            return new Var(new Assign("<missing>", new Err(res)));
+        }
+
+        remark.parser.varNameIsMissing();
+        return new Var(new Ident("<missing>"));
+    }
+
+
+    Exp parseIdentOrAssign (ParseContext ctx, ref dstring code, Asi prevAsi, 
+                            EvalStrategy es, bool onSameLineOnly, dstring identStr)
+    {
+        auto ident = new Ident(identStr);
+        skipWhite(code);
+        auto mEq = matchOp(code, "=");
+
+        if (ctx != ParseContext.var && !mEq)
+            return ident;
+
+        auto val = parseAsi(ParseContext.assign, code, null, es);
+
+        if (!val)
+        {
+            if (!mEq)
+                return ident;
+
+            remark.parser.varValueIsMissing();
+            return new Assign(ident.name, new Missing);
+        }
+
+        if (!mEq)
+            remark.parser.varEqualsIsMissing();
+
+        auto exp = cast(Exp)val;
+        if (exp)
+            return new Assign(ident.name, exp);
+
+        remark.parser.varValueIsNotExp();
+        return new Assign(ident.name, new Err(val));
+    }
+    
+
+    Exp parseOpApply (ParseContext ctx, ref dstring code, Asi prevAsi, 
+                      EvalStrategy es, bool onSameLineOnly, out bool replace,
+                      dstring opStr)
+    {
+        auto op1 = prevAsi;
+        auto op2 = parseAsi(ParseContext.op, code, null, es);
+
+        if (!op1 && !op2)
+        {
+            remark.parser.opWithoutOperands();
+            op1 = new Missing;
+            op2 = new Missing;
+        }
+        else if (!op1)
+        {
+            remark.parser.expExpectedBeforeOp();
+            op1 = new Missing;
+        }
+        else if (!op2)
+        {
+            remark.parser.expExpectedAfterOp();
+            op2 = new Missing;
+        }
+
+        auto stm1 = cast(Stm)op1;
+        auto stm2 = cast(Stm)op2;
+
+        if (stm1 && stm2)
+        {
+            remark.parser.opBetweenStatements();
+            op1 = new Err(stm1);
+            op2 = new Err(stm2);
+        }
+        else if (stm1)
+        {
+            remark.parser.expExpectedBeforeOpButStmFound();
+            op1 = new Err(stm1);
+        }
+        else if (stm2)
+        {
+            remark.parser.expExpectedAfterOpButStmFound();
+            op2 = new Err(stm2);
+        }
+
+        replace = true;
+        return new OpApply(opStr, sureCast!Exp(op1), sureCast!Exp(op2));
     }
 }
 

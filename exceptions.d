@@ -76,27 +76,33 @@ final class Thrower
         e(__FUNCTION__, "Expression or its part has and error");
     }
 
-
     void cannotEvalMissing ()
     {
         e(__FUNCTION__, "Expression or its part is missing");
     }
-
 
     void integerOwerflow ()
     {
         e(__FUNCTION__, "Integer overflowed over maximum value");
     }
 
+    void integerUnderflow ()
+    {
+        e(__FUNCTION__, "Integer underflowed over minimum value");
+    }
 
     void opeatorIsUndefined (dstring op)
     {
         e(__FUNCTION__, "Operator '" ~ op ~ "'is undefined.");
     }
 
-
     void undefinedVariable (dstring op)
     {
         e(__FUNCTION__, "Variable '" ~ op ~ "'is undefined.");
+    }
+
+    void cannotLoadFile (dstring path, Exception ex)
+    {
+        e(__FUNCTION__, "Failed to load file '" ~ path ~ "': " ~ ex.msg.toDString());
     }
 }

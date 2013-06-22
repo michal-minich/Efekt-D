@@ -14,7 +14,7 @@ unittest
     auto rc = new RemarkCollector;
     remark = new Remarker(rc);
     auto sp = new StringPrinter;
-    auto ap = new printer.AsiPrinter(sp);
+    auto ap = new AsiPrinter(sp);
     auto ec = new ExceptionCollector;
     auto interpreter = new Interpreter(new Thrower(ec));
     auto p = new Parser;

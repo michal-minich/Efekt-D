@@ -1,4 +1,20 @@
-review all trusted, cast, assert and catch
-	std and err printers are nothrow, should they throw?
-better error messages: var, texts in general, include subject of error
+fix: underflow in lax mode
 unittests: ident, var, unknown operators
+program runner
+run programs from interactive
+static/dynamic verification (declared vars)
+
+value range propagation
+if - exp / single stm / multi stm ?
+unreachable code remark
+more basic int operators * \ %
+label - first class ?
+goto
+coverage analysis (execution count of exp)
+ref
+comparison operators > < >= <= == !=
+logical operators not and or
+bitwise operators << >> & | ~ ^
+
+better error messages: var, texts in general, include subject of error, suggest similar variables, start-end line and column
+review all trusted, cast, assert and catch (std and err printers are nothrow, should they throw?)

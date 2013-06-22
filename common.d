@@ -1,10 +1,26 @@
 module common;
 
-import std.stdio;
+import std.file, std.stdio;
 import terminal;
-import utils, printer, remarks;
+import utils, printer, remarks, exceptions;
 
 public import terminal : Color; 
+
+
+
+@system dstring loadFile (string path, Thrower th)
+{
+    try
+    {
+        return std.file.readText(path).toDString();
+    }
+    catch (Exception ex)
+    {
+        th.cannotLoadFile(path.toDString(), ex);
+        return null;
+    }
+}
+
 
 @safe nothrow:
 
