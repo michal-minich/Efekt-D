@@ -1,3 +1,7 @@
-var x = 1
-var y = x + 1
-var x = z
+var a = 1
+var b = a + 2
+var c = 3 + b
+var x = c
+x = c + b
+x = x + c
+x = x + x

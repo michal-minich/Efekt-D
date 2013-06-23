@@ -16,6 +16,8 @@ final class Interpreter : AsiVisitorThrowing!Asi
     nothrow this (Thrower thrower) { this.thrower = thrower; }
 
 
+
+
     nothrow Asi run (Asi[] asis, EvalStrategy es)
     {
         if (!asis.length)
@@ -41,10 +43,15 @@ final class Interpreter : AsiVisitorThrowing!Asi
     }
 
 
-    Exp eval (Exp e)
+
+
+    private Exp eval (Exp e)
     {
-        return sureCast!Exp(e.accept(this));
+        auto res = e.accept(this);
+        return sureCast!Exp(res);
     }
+
+
 
 
     Var visit (Var v)
@@ -64,6 +71,8 @@ final class Interpreter : AsiVisitorThrowing!Asi
     }
 
 
+
+
     Missing visit (Missing m)
     {
         if (es == EvalStrategy.throwing)
@@ -71,6 +80,8 @@ final class Interpreter : AsiVisitorThrowing!Asi
 
         return m;
     }
+
+
 
 
     Asi visit (Err er)
@@ -88,6 +99,8 @@ final class Interpreter : AsiVisitorThrowing!Asi
     }
 
     
+
+
     Exp visit (Ident i)
     {
         auto var = i.name in vars;
@@ -97,6 +110,8 @@ final class Interpreter : AsiVisitorThrowing!Asi
         thrower.undefinedVariable(i.name);
         return new Missing;
     }
+
+
 
 
     Exp visit (Assign a)
@@ -115,7 +130,11 @@ final class Interpreter : AsiVisitorThrowing!Asi
     }
 
     
+
+
     Int visit (Int i) { return i; }
+
+
 
 
     Exp visit (OpApply opa)

@@ -1,7 +1,7 @@
 module interactive;
 
 import std.file : exists;
-import utils, common, ast, parser, printer, exceptions, validation, interpreter;
+import utils, common, ast, parser, printer, exceptions, validation, intrange, interpreter;
 
 
 @safe nothrow:
@@ -117,7 +117,13 @@ final class Interactive
         {
             auto code = loadFile(filePath.toString(), th);
 
-            validateAndRun(code);
+            auto es2 = EvalStrategy.strict;
+            auto asis = parser.parse(code, es2);
+            nameValidator.validate(asis, es2);
+            (new IntRange(interpreter)).calculate(asis, es2);
+            (new AsiPrinter(new FilePrinter((filePath[0 .. $ - 3] ~ ".range.txt").toString())))
+                .print(asis, true);
+            interpreter.run(asis, es2);
         }
         catch (InterpreterException ex)
         {
@@ -125,18 +131,8 @@ final class Interactive
         }
         catch (Exception ex)
         {
-            assert (false, ex.msg);
+            printer.print(ex.msg.toDString());
         }
-    }
-
-
-
-
-    private void validateAndRun (dstring code)
-    {
-        auto asis = parser.parse(code, es);
-        nameValidator.validate(asis, es);
-        run (asis);
     }
 
 
@@ -152,7 +148,7 @@ final class Interactive
 
 
     private void run (Asi[] asis)
-    {        
+    {
         auto res = interpreter.run(asis, es);
         if (res)
         {

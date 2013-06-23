@@ -10,16 +10,19 @@ final class AsiPrinter : AsiVisitor!void
 {
     nothrow:
 
-    IPrinter printer;
+    private IPrinter printer;
+    private bool printRange;
 
 
     this (IPrinter printer) { this.printer = printer; }
 
     
-    void print (Asi[] asis)
+    void print (Asi[] asis, bool printRange = false)
     {
         if (!asis)
             return;
+
+        this.printRange = printRange;
 
         foreach (a; asis[0 ..$ - 1])
         {
@@ -59,12 +62,23 @@ final class AsiPrinter : AsiVisitor!void
     void visit (Ident i)
     {
         printer.print(i.name);
+        if (printRange)
+        {
+            printer.print("(");
+            printer.print(i.min.toDString());
+            if (i.min != i.max)
+            {
+                printer.print("-");
+                printer.print(i.max.toDString());
+            }
+            printer.print(")");
+        }
     }
 
 
     void visit (Assign a)
     {
-        printer.print(a.ident.name);
+        a.ident.accept(this);
         printer.print(" = ");
         a.value.accept(this);
     }

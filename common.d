@@ -4,7 +4,9 @@ import std.file, std.stdio;
 import terminal;
 import utils, printer, remarks, exceptions;
 
+
 public import terminal : Color; 
+
 
 
 
@@ -22,14 +24,22 @@ public import terminal : Color;
 }
 
 
+
+
 @safe nothrow:
+
+
 
 
 Remarker remark;
 AsiPrinter asip;
 
 
+
+
 enum EvalStrategy { throwing, strict, lax }
+
+
 
 
 const interface IReader
@@ -37,6 +47,8 @@ const interface IReader
     nothrow:
     dstring readln ();
 }
+
+
 
 
 interface IBasicPrinter
@@ -49,6 +61,8 @@ interface IBasicPrinter
 }
 
 
+
+
 const interface IPrinter : IBasicPrinter
 {
     nothrow:
@@ -58,11 +72,15 @@ const interface IPrinter : IBasicPrinter
 }
 
 
+
+
 const final class StdInReader : IReader
 {
     nothrow:
     @trusted dstring readln () { return dontThrow(std.stdio.readln().toDString()); }
 }
+
+
 
 
 @trusted setColor (alias t) (Color color, bool bold)
@@ -77,6 +95,8 @@ const final class StdInReader : IReader
         assert(ex.msg);
     }
 }
+
+
 
 
 @trusted colorPrintLn (alias t, alias f) (Color color, bool bold, dstring s, bool println = true)
@@ -101,10 +121,14 @@ const final class StdInReader : IReader
 }
 
 
+
+
 @trusted colorPrint (alias t, alias f) (Color color, bool bold, dstring s)
 {
     colorPrintLn!(t, f)(color, bold, s, false);
 }
+
+
 
 
 final class StdOutPrinter : IPrinter
@@ -125,6 +149,26 @@ final class StdOutPrinter : IPrinter
     @trusted void println (dstring s) { dontThrow(writeln(s)); }
     @trusted void println () { dontThrow(writeln()); }
 }
+
+
+
+
+@trusted final class FilePrinter : IPrinter
+{
+    private File* f;
+
+    @trusted this (string filePath) { f = new File(filePath, "w"); }
+    ~this () { f.close(); }
+
+    nothrow:
+
+    @disable const void color (Color c, bool bold = false) { }
+    @disable const void restoreColor () { }
+    @trusted void print (dstring s) { dontThrow(f.write(s)); }
+    @trusted void println (dstring s) { dontThrow(f.writeln(s)); }
+    @trusted void println () { dontThrow(f.writeln()); }
+}
+
 
 
 final class StdErrPrinter : IPrinter
@@ -162,13 +206,15 @@ final class StdErrPrinter : IPrinter
 }
 
 
+
+
 final class StringPrinter : IPrinter
 {
     nothrow:
     dstring str;
 
-    const void color (Color c, bool bold = false) { }
-    const void restoreColor () { }
+    @disable const void color (Color c, bool bold = false) { }
+    @disable const void restoreColor () { }
     void clear () { str = null; }
     void print (dstring s) { str ~= s; }
     void println (dstring s) { str ~= s ~ '\n'; }

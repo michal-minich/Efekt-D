@@ -101,6 +101,8 @@ unittest
     evalTest("3+", "3", EvalStrategy.lax);
     verifyRemarks("expExpectedAfterOp");
 
+    evalTest("var x = 1\nx = 2\nx", "2");
+    verifyRemarks();
 
     evalTest("9223372036854775808", "<error>", EvalStrategy.strict);
     verifyRemarks("numberNotInRange");

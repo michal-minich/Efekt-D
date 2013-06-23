@@ -17,7 +17,6 @@ final class NameValidator : AsiVisitor!void
     bool declare;
 
 
-   
     void validate (Asi[] asis, EvalStrategy es)
     {
         if (!asis)

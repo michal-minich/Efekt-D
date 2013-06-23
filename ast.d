@@ -1,6 +1,6 @@
 module ast;
 
-import common, printer, validation, interpreter;
+import common, printer, validation, intrange, interpreter;
 
 @safe nothrow:
 
@@ -46,6 +46,7 @@ mixin template Acceptors ()
     
     override void accept (AsiPrinter v) { v.visit(this); }
     override void accept (NameValidator v) { return v.visit(this); }
+    override void accept (IntRange v) { return v.visit(this); }
 }
 
 
@@ -81,6 +82,7 @@ abstract class  Asi
 
     void accept (AsiPrinter);
     void accept (NameValidator);
+    void accept (IntRange);
     
     enum castThis = q{ return cast(typeof(return))this; };
 
@@ -122,6 +124,9 @@ abstract class Stm : Asi
 
 abstract class Exp : Asi
 {
+    long min;
+    long max;
+
     mixin (disable!(typeof(this)));
 
     // disable classes derived form Stm as they will always be null

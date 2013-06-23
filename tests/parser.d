@@ -74,6 +74,10 @@ unittest
     testStr("var x", "var x");
     verifyRemarks();
     
+    testStr("var x = 1\nx = 2", "var x = 1\nx = 2");
+    verifyRemarks();
+
+
 
     testStr("var x 1", "var x = 1");
     verifyRemarks("varEqualsIsMissing");
