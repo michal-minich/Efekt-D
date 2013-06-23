@@ -1,8 +1,12 @@
 module utils;
 
+import std.exception : assumeUnique;
 import std.stdio, std.conv;
 
+
 @safe nothrow:
+
+
 
 
 @trusted R dontThrow (R) (lazy R fn)
@@ -12,6 +16,8 @@ import std.stdio, std.conv;
     catch (Exception ex)
         assert (false, ex.toString());
 }
+
+
 
 
 @trusted dstring toDString (T) (const T a) 
@@ -24,6 +30,8 @@ import std.stdio, std.conv;
 }
 
 
+
+
 @trusted string toString (const dstring s) 
 {
     try
@@ -33,6 +41,8 @@ import std.stdio, std.conv;
 }
 
 
+
+
 @trusted string toString (const size_t s) 
 {
     try
@@ -40,6 +50,8 @@ import std.stdio, std.conv;
     catch (Exception ex)
         assert (false, ex.toString());
 }
+
+
 
 
 @trusted pure B sureCast (B, A) (A a)
@@ -58,6 +70,8 @@ import std.stdio, std.conv;
 }
 
 
+
+
 debug @trusted void dbg (Args...) (Args args)
 {
     try
@@ -65,6 +79,8 @@ debug @trusted void dbg (Args...) (Args args)
     catch (Exception ex)
         assert (ex.msg);
 }
+
+
 
 
 pure size_t lastIndexOf (const string items, char item)
@@ -77,10 +93,14 @@ pure size_t lastIndexOf (const string items, char item)
 }
 
 
+
+
 pure string lastItemInList (const string list, char separator)
 {
     return list[list.lastIndexOf(separator) + 1 .. $];
 }
+
+
 
 
 pure size_t count (T, U) (const T[] items, const U item)
@@ -90,4 +110,18 @@ pure size_t count (T, U) (const T[] items, const U item)
         if (i == item)
             ++c;
     return c;
+}
+
+
+
+pure @trusted dstring toLowerAscii (const dstring s)
+{
+    auto res = new dchar[s.length];
+    foreach (ix, dchar ch; s)
+    {
+        if (ch >= 65 && ch <= 90) // check for [A-Z]
+            ch = ch + 32; // change [A-Z] to [a-z]
+        res[ix] = ch;
+    }
+    return res.assumeUnique();
 }

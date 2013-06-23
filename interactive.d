@@ -37,7 +37,7 @@ final class Interactive
 
             auto ln = reader.readln()[0 .. $ - 1]/*trim \n*/;
 
-            switch (ln) // todo ignore case compare
+            switch (ln.toLowerAscii())
             {
                 case ":q":
                 case ":quit":

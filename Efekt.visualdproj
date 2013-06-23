@@ -34,13 +34,13 @@
   <useUnitTests>1</useUnitTests>
   <useInline>0</useInline>
   <release>0</release>
-  <preservePaths>0</preservePaths>
+  <preservePaths>1</preservePaths>
   <warnings>1</warnings>
   <infowarnings>1</infowarnings>
   <checkProperty>1</checkProperty>
   <genStackFrame>1</genStackFrame>
   <pic>0</pic>
-  <cov>1</cov>
+  <cov>0</cov>
   <nofloat>0</nofloat>
   <Dversion>2</Dversion>
   <ignoreUnsupportedPragmas>0</ignoreUnsupportedPragmas>
@@ -54,7 +54,7 @@
   <objname />
   <libname />
   <doDocComments>0</doDocComments>
-  <docdir />
+  <docdir>doc</docdir>
   <docname />
   <modules_ddoc />
   <ddocfiles />
