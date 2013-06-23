@@ -140,7 +140,7 @@ final class Parser
                 remark.parser.varValueIsNotExp();
                 exp = new Err(val);
             }
-            return new Var(new Assign ("<missing>", exp));
+            return new Var(new Assign (new Ident("<missing>"), exp));
         }
         else if (peekIdent(code, "var"))
         {
@@ -162,13 +162,13 @@ final class Parser
         if (exp)
         {
             remark.parser.expOrStmInsteadOfVarNameFound();
-            return new Var(new Assign("<missing>", exp));
+            return new Var(new Assign(new Ident("<missing>"), exp));
         }
 
         if (res)
         {
             remark.parser.expOrStmInsteadOfVarNameFound();
-            return new Var(new Assign("<missing>", new Err(res)));
+            return new Var(new Assign(new Ident("<missing>"), new Err(res)));
         }
 
         remark.parser.varNameIsMissing();
@@ -196,7 +196,7 @@ final class Parser
                 return ident;
 
             remark.parser.varValueIsMissing();
-            return new Assign(ident.name, new Missing);
+            return new Assign(ident, new Missing);
         }
 
         if (!mEq)
@@ -204,10 +204,10 @@ final class Parser
 
         auto exp = cast(Exp)val;
         if (exp)
-            return new Assign(ident.name, exp);
+            return new Assign(ident, exp);
 
         remark.parser.varValueIsNotExp();
-        return new Assign(ident.name, new Err(val));
+        return new Assign(ident, new Err(val));
     }
     
 

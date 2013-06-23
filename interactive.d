@@ -1,7 +1,7 @@
 module interactive;
 
 import std.file : exists;
-import utils, common, parser, printer, exceptions, interpreter;
+import utils, common, ast, parser, printer, exceptions, validation, interpreter;
 
 
 @safe nothrow:
@@ -16,6 +16,7 @@ final class Interactive
     IReader reader;
     IPrinter printer;
     AsiPrinter asip;
+    NameValidator nameValidator;
     Interpreter interpreter;
     EvalStrategy es;
     Parser parser;
@@ -30,6 +31,7 @@ final class Interactive
         this.printer = printer;
         this.asip = asip;
         th = new Thrower(ep);
+        nameValidator = new NameValidator;
         interpreter =  new Interpreter(th);
         parser = new Parser;
         printBanner();
@@ -98,7 +100,7 @@ final class Interactive
                     }
                     else
                     {
-                        runOne(ln);
+                        run(ln);
                     }
             }
         }
@@ -113,8 +115,9 @@ final class Interactive
 
         try
         {
-            auto str = loadFile(filePath.toString(), th);
-            runOne(str);
+            auto code = loadFile(filePath.toString(), th);
+
+            validateAndRun(code);
         }
         catch (InterpreterException ex)
         {
@@ -129,10 +132,27 @@ final class Interactive
 
 
 
-    private void runOne (dstring ln)
+    private void validateAndRun (dstring code)
     {
-        auto asis = parser.parse(ln, es);
+        auto asis = parser.parse(code, es);
+        nameValidator.validate(asis, es);
+        run (asis);
+    }
 
+
+
+
+    private void run (dstring code)
+    {
+        auto asis = parser.parse(code, es);
+        run (asis);
+    }
+
+
+
+
+    private void run (Asi[] asis)
+    {        
         auto res = interpreter.run(asis, es);
         if (res)
         {

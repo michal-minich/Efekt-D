@@ -1,6 +1,6 @@
 module ast;
 
-import common, printer, interpreter;
+import common, printer, validation, interpreter;
 
 @safe nothrow:
 
@@ -40,8 +40,12 @@ interface AsiVisitor (R)
 
 mixin template Acceptors ()
 {
-    nothrow override void accept (AsiPrinter v) { v.visit(this); }
     override Asi accept (Interpreter v) { return v.visit(this); }
+    
+    nothrow:
+    
+    override void accept (AsiPrinter v) { v.visit(this); }
+    override void accept (NameValidator v) { return v.visit(this); }
 }
 
 
@@ -72,10 +76,11 @@ abstract class  Asi
     debug
     {
         string typeName;
-        nothrow this () { typeName = typeid(this).name;}
+        this () { typeName = typeid(this).name;}
     }
 
     void accept (AsiPrinter);
+    void accept (NameValidator);
     
     enum castThis = q{ return cast(typeof(return))this; };
 
@@ -204,13 +209,12 @@ final class Assign : Exp
     
     nothrow:
     
-    dstring name;
-    
+    Ident ident;    
     Exp value;
     
-    this (dstring name, Exp value) { this.name = name; this.value = value; }
+    this (Ident ident, Exp value) { this.ident = ident; this.value = value; }
 
-    invariant () { assert(name.length); assert(value); }
+    invariant () { assert(ident); assert(value); }
 }
 
 

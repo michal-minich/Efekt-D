@@ -34,8 +34,7 @@ final class AsiPrinter : AsiVisitor!void
     void visit (Var v)
     {
         printer.print("var ");
-        if (v.exp)
-            v.exp.accept(this);
+        v.exp.accept(this);
     }
 
 
@@ -65,7 +64,7 @@ final class AsiPrinter : AsiVisitor!void
 
     void visit (Assign a)
     {
-        printer.print(a.name);
+        printer.print(a.ident.name);
         printer.print(" = ");
         a.value.accept(this);
     }

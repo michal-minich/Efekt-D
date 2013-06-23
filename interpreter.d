@@ -52,7 +52,7 @@ final class Interpreter : AsiVisitorThrowing!Asi
         auto ass = cast(Assign)v.exp;
         if (ass)
         {
-            vars[ass.name] = new Missing;
+            vars[ass.ident.name] = new Missing;
             ass.accept(this);
         }
         else
@@ -73,12 +73,18 @@ final class Interpreter : AsiVisitorThrowing!Asi
     }
 
 
-    Err visit (Err er)
+    Asi visit (Err er)
     {
-        if (es == EvalStrategy.throwing)
-            thrower.cannotEvalError();
-
-        return er;
+        final switch (es) with (EvalStrategy)
+        {
+            case throwing:
+                thrower.cannotEvalError();
+                assert(false);
+            case strict:
+                return er;
+            case lax:
+                return er.asi ? er.asi : er;
+        }
     }
 
     
@@ -96,13 +102,13 @@ final class Interpreter : AsiVisitorThrowing!Asi
     Exp visit (Assign a)
     {
         auto val = eval(a.value);
-        auto var = a.name in vars;
+        auto var = a.ident.name in vars;
         if (var)
             *var = val;
         else
         {
-            thrower.undefinedVariable(a.name);
-            vars[a.name] = val;
+            thrower.undefinedVariable(a.ident.name);
+            vars[a.ident.name] = val;
         }
 
         return val;

@@ -93,12 +93,12 @@ final class Thrower
 
     void opeatorIsUndefined (dstring op)
     {
-        e(__FUNCTION__, "Operator '" ~ op ~ "'is undefined.");
+        e(__FUNCTION__, "Operator '" ~ op ~ "' is undefined.");
     }
 
     void undefinedVariable (dstring op)
     {
-        e(__FUNCTION__, "Variable '" ~ op ~ "'is undefined.");
+        e(__FUNCTION__, "Variable '" ~ op ~ "' is undefined.");
     }
 
     void cannotLoadFile (dstring path, Exception ex)

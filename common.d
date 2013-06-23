@@ -8,7 +8,7 @@ public import terminal : Color;
 
 
 
-@system dstring loadFile (string path, Thrower th)
+@trusted dstring loadFile (string path, Thrower th)
 {
     try
     {

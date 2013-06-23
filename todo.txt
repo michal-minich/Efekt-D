@@ -1,6 +1,5 @@
 fix: underflow in lax mode
-unittests: ident, var, unknown operators
-static/dynamic verification (declared vars)
+unittests: ident, var, unknown operators, validator
 
 value range propagation
 if - exp / single stm / multi stm ?

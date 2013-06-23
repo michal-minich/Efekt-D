@@ -58,10 +58,12 @@ final class Remarker
     nothrow:
 
     ParserRemarks parser;
+    NameValidatorRemarks nameValidator;
 
     this (IRemarkPrinter rp)
     {
         parser = new ParserRemarks(rp);
+        nameValidator = new NameValidatorRemarks(rp);
     }
 }
 
@@ -164,5 +166,37 @@ final class ParserRemarks
     {
         r(RemarkSeverity.error, __FUNCTION__, 
           "Keyword 'var' is redundant.");
+    }
+}
+
+
+
+
+final class NameValidatorRemarks
+{
+    nothrow:
+
+    private IRemarkPrinter rp;
+
+    this (IRemarkPrinter rp) { this.rp = rp; }
+
+
+    private void r(RemarkSeverity serverity, string name, dstring text)
+    {
+        rp.print(Remark(RemarkSeverity.error,
+                        lastItemInList(name, '.').toDString(),
+                        text));
+    }
+    
+    void indetifierUndefined (dstring name)
+    {
+        r(RemarkSeverity.error, __FUNCTION__, 
+          "Identifier '" ~ name ~ "' is not yet defined.");
+    }
+    
+    void indetifierAlreadyDefined (dstring name)
+    {
+        r(RemarkSeverity.error, __FUNCTION__, 
+          "Identifier '" ~ name ~ "' is already defined.");
     }
 }
