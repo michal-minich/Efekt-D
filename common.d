@@ -32,7 +32,7 @@ AsiPrinter asip;
 enum EvalStrategy { throwing, strict, lax }
 
 
-interface IReader
+const interface IReader
 {
     nothrow:
     dstring readln ();
@@ -49,7 +49,7 @@ interface IBasicPrinter
 }
 
 
-interface IPrinter : IBasicPrinter
+const interface IPrinter : IBasicPrinter
 {
     nothrow:
 
@@ -58,7 +58,7 @@ interface IPrinter : IBasicPrinter
 }
 
 
-final class StdInReader : IReader
+const final class StdInReader : IReader
 {
     nothrow:
     @trusted dstring readln () { return dontThrow(std.stdio.readln().toDString()); }
@@ -109,7 +109,7 @@ final class StdInReader : IReader
 
 final class StdOutPrinter : IPrinter
 {
-    nothrow:
+    const nothrow:
 
     @trusted void color (Color c, bool bold = false)
     {
@@ -135,6 +135,8 @@ final class StdErrPrinter : IPrinter
     bool bold;
 
     this (Color color, bool bold = false) { clr = color; this.bold = bold; }
+
+    const:
 
     @trusted void color (Color c, bool bold = false)
     {
@@ -165,8 +167,8 @@ final class StringPrinter : IPrinter
     nothrow:
     dstring str;
 
-    void color (Color c, bool bold = false) {}
-    void restoreColor () {}
+    const void color (Color c, bool bold = false) { }
+    const void restoreColor () { }
     void clear () { str = null; }
     void print (dstring s) { str ~= s; }
     void println (dstring s) { str ~= s ~ '\n'; }

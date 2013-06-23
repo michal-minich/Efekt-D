@@ -159,4 +159,10 @@ final class ParserRemarks
         r(RemarkSeverity.error, __FUNCTION__, 
           "An expression should be assigned to variable, not statement");
     }
+
+    void redundantVarKeyword ()
+    {
+        r(RemarkSeverity.error, __FUNCTION__, 
+          "Keyword 'var' is redundant.");
+    }
 }

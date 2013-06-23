@@ -5,6 +5,8 @@ import common, printer, interpreter;
 @safe nothrow:
 
 
+
+
 mixin template Visits ()
 {
     R visit (Var);
@@ -17,10 +19,14 @@ mixin template Visits ()
 }
 
 
+
+
 interface AsiVisitorThrowing (R)
 {
     mixin Visits!();
 }
+
+
 
 
 interface AsiVisitor (R)
@@ -30,6 +36,8 @@ interface AsiVisitor (R)
 }
 
 
+
+
 mixin template Acceptors ()
 {
     nothrow override void accept (AsiPrinter v) { v.visit(this); }
@@ -37,15 +45,22 @@ mixin template Acceptors ()
 }
 
 
+
+
 private @property auto disable (T...) ()
 {
-    return"";/*
     auto res = "";
     foreach (t; T)
-        res ~=  q{const nothrow pure @disable  @property const(}
-            ~ t.stringof ~ q{) as} ~ t .stringof ~ q{ () { assert(false); }};
-    return res;*/
+    {
+        immutable ts = "const(" ~ t.stringof ~ ")";
+        pragma (msg, ts);
+        res ~= "const nothrow pure override @disable @property " ~ ts
+            ~ " as" ~ t.stringof ~ " () { return this; } ";
+    }
+    return res;
 }
+
+
 
 
 abstract class  Asi
@@ -62,49 +77,58 @@ abstract class  Asi
 
     void accept (AsiPrinter);
     
-    pure @property const:
+    enum castThis = q{ return cast(typeof(return))this; };
 
-    enum castExp = q{assert(cast(const Exp)this); return cast(typeof(return))this;};
-    enum castStm = q{assert(cast(const Stm)this); return cast(typeof(return))this;};
+    const pure @property:
+    // stm
+    const(Stm) asStm () { mixin(castThis); }
+    const(Var) asVar () { mixin(castThis); }
 
-    const(Stm) asStm () { mixin(castStm); }
-    const(Exp) asExp () { mixin(castExp); }
-    const(Var) asVar () { mixin(castStm); }
-    const(Missing) asMissing () { mixin(castExp); }
-    const(Err) asErr () { mixin(castExp); }
-    const(Ident) asIdent () { mixin(castExp); }
-    const(Assign) asAssign () { mixin(castExp); }
-    const(Int) asInt () { mixin(castExp); }
-    const(OpApply) asOpApply () { mixin(castExp); }
+    // exp
+    const(Exp) asExp () { mixin(castThis); }
+    const(Missing) asMissing () { mixin(castThis); }
+    const(Err) asErr () { mixin(castThis); }
+    const(Ident) asIdent () { mixin(castThis); }
+    const(Assign) asAssign () { mixin(castThis); }
+    const(Int) asInt () { mixin(castThis); }
+    const(OpApply) asOpApply () { mixin(castThis); }
 }
+
+
 
 
 abstract class Stm : Asi
 {
-    const nothrow pure @disable override @property:
-    const(Stm) asStm () { assert(false); }
-    const(Exp) asExp () { assert(false); }
+    mixin (disable!(typeof(this)));
 
-    const(Missing) asMissing () { assert(false); }
-    const(Err) asErr () { assert(false); }
-    const(Ident) asIdent () { assert(false); }
-    const(Assign) asAssign () { assert(false); }
-    const(Int) asInt () { assert(false); }
-    const(OpApply) asOpApply () { assert(false); }
+    // disable classes derived form Exp as they will always be null
+    const nothrow pure @disable override @property:
+    const(Exp) asExp () { return null; }
+    const(Missing) asMissing () { return null; }
+    const(Err) asErr () { return null; }
+    const(Ident) asIdent () { return null; }
+    const(Assign) asAssign () { return null; }
+    const(Int) asInt () { return null; }
+    const(OpApply) asOpApply () { return null; }
 }
+
+
 
 
 abstract class Exp : Asi
 {
-    const nothrow pure @disable override @property:
-    const(Stm) asStm () { assert(false); }
-    const(Exp) asExp () { assert(false); }
+    mixin (disable!(typeof(this)));
 
-    const(Var) asVar () { assert(false); }
+    // disable classes derived form Stm as they will always be null
+    const nothrow pure @disable override @property:
+    const(Stm) asStm () { return null; }
+    const(Var) asVar () { return null; }
 }
 
 
-class Var : Stm
+
+
+final class Var : Stm
 {
     mixin Acceptors!();
     mixin (disable!(typeof(this)));
@@ -113,26 +137,21 @@ class Var : Stm
 
     Exp pExp;
 
+    this (Err err) { pExp = err; }
     this (Ident ident) { pExp = ident; }
     this (Assign ass) { pExp = ass; }
 
-    invariant () { assert (pExp && (pExp.asIdent || pExp.asAssign)); }
+    invariant () { assert (pExp && (pExp.asIdent || pExp.asAssign || pExp.asErr)); }
 
     pure @property:
 
     Exp exp () { return pExp; }
-
-    const dstring name ()
-    {
-        auto a = pExp.asAssign;
-        if (a)
-            return a.name;
-        return pExp.asIdent.name;
-    }
 }
 
 
-class Missing : Exp
+
+
+final class Missing : Exp
 {
     mixin Acceptors!();
     mixin (disable!(typeof(this)));
@@ -142,7 +161,9 @@ class Missing : Exp
 }
 
 
-class Err : Exp
+
+
+final class Err : Exp
 {
     mixin Acceptors!();
     mixin (disable!(typeof(this)));
@@ -155,6 +176,8 @@ class Err : Exp
     
     //invariant () { assert(asi); }
 }
+
+
 
 
 final class Ident : Exp
@@ -172,7 +195,9 @@ final class Ident : Exp
 }
 
 
-class Assign : Exp
+
+
+final class Assign : Exp
 {
     mixin Acceptors!();
     mixin (disable!(typeof(this)));
@@ -187,6 +212,8 @@ class Assign : Exp
 
     invariant () { assert(name.length); assert(value); }
 }
+
+
 
 
 
@@ -207,6 +234,8 @@ final class Int : Exp
         this.asLong = asLong;
     }
 }
+
+
 
 
 final class OpApply : Exp

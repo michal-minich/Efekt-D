@@ -24,7 +24,7 @@ unittest
         sp.clear();
         auto asis = p.parse(code, es);
 
-        auto expectedAsisCount = (expected ? code.count('\n') + 1 : 0);
+        auto expectedAsisCount = (expected ? expected.count('\n') + 1 : 0);
         check (asis.length == expectedAsisCount,
                "Invalid number of Asis '" ~ code ~ "' -> " ~
                asis.length.toDString() ~ " != " ~ expectedAsisCount.toDString());
@@ -65,6 +65,9 @@ unittest
     testStr("1+", "1 + <missing>");
     verifyRemarks("expExpectedAfterOp");
 
+    testStr("1+2", "1 + 2");
+    verifyRemarks();
+
     testStr("var", "var <missing>");
     verifyRemarks("varNameIsMissing");
 
@@ -87,15 +90,15 @@ unittest
     testStr("var = 1", "var <missing> = 1");
     verifyRemarks("varNameIsMissing");
 
-    /*testStr("var var", "var <missing>\nvar <missing>");
-    verifyRemarks();
+    testStr("var var", "<error var>\nvar <missing>");
+    verifyRemarks("redundantVarKeyword", "varNameIsMissing");
 
-    testStr("var var x", "var <missing>\nvar x");
-    verifyRemarks();
+    testStr("var var x", "<error var>\nvar x");
+    verifyRemarks("redundantVarKeyword");
 
-    testStr("var var x = 1", "<var <missing>\nvar x = 1");
-    verifyRemarks();
-
+    testStr("var var x = 1", "<error var>\nvar x = 1");
+    verifyRemarks("redundantVarKeyword");
+/*
     testStr("var x var x", "var x\nvar x");
     verifyRemarks();
 
@@ -128,7 +131,7 @@ unittest
     testStr("9223372036854775808", "<error>");
     verifyRemarks("numberNotInRange");
 
-    testStr("var x\nx\nx", "var x\nx\nx");
+    testStr("var x\ny\nz\nw", "var x\ny\nz\nw");
 
     //testStr("var x = 4\nx\nx", "var x = 4\nx\nx");
     //verifyRemarks();

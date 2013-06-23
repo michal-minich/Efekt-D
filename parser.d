@@ -3,7 +3,10 @@ module parser;
 import std.conv, std.bigint;
 import utils, common, ast, remarks;
 
+
 @safe nothrow:
+
+
 
 
 private enum ParseContext
@@ -15,12 +18,16 @@ private enum ParseContext
 }
 
 
+
+
 final class Parser
 {
     nothrow:
 
+
     bool hasError;
     bool wasNewline;
+
 
     Asi[] parse (dstring code, EvalStrategy es)
     {
@@ -46,60 +53,39 @@ final class Parser
     }
 
 
-    Asi afterReplaceAsi;
+
+
     private Asi parseAsi (ParseContext ctx, ref dstring code, Asi prevAsi, 
-                          EvalStrategy es, bool onSameLineOnly = false)
+                             EvalStrategy es, bool onSameLineOnly)
     {
-        bool replace = true;
-        Asi asi;
-
-        if (afterReplaceAsi)
+        auto asi = parseOneAsi (ctx, code, prevAsi, es, onSameLineOnly);
+        if (asi && code.length)
         {
-            asi = afterReplaceAsi;
-            afterReplaceAsi = null;
+            skipWhite(code);
+            if (code.length)
+                if (auto m = match(code, &isOp))
+                    return parseOpApply(ctx, code, asi, es, onSameLineOnly, m);
         }
-        else
-        {
-            asi = parseOneAsi(ctx, code, prevAsi, es, onSameLineOnly, replace);
-        }
-
-        if (!asi)
-            return null;
-
-        prevAsi = asi;
-
-        while (true)
-        {
-            asi = parseOneAsi(ctx, code, asi, es, onSameLineOnly, replace);
-
-            if (!asi)
-            {
-                return prevAsi;
-            }
-            else if (!replace)
-            {
-                afterReplaceAsi = asi;
-                return prevAsi;
-            }
-
-            prevAsi = asi;
-        }
+        return asi;
     }
 
 
+
+
     private Asi parseOneAsi (ParseContext ctx, ref dstring code, Asi prevAsi, 
-                             EvalStrategy es, bool onSameLineOnly, out bool replace)
+                             EvalStrategy es, bool onSameLineOnly)
     {
         again:
 
         skipWhite(code);
 
         if (!code.length)
-            return null;
-
-        if (matchIdent(code, "var"))
         {
-            return parseVar(ctx, code, prevAsi, es, onSameLineOnly, replace);
+            return null;
+        }
+        else if (auto m = matchIdent(code, "var"))
+        {
+            return parseVar(ctx, code, prevAsi, es, onSameLineOnly, m);
         }
         else if (auto m = match(code, &isIdent))
         {
@@ -111,7 +97,7 @@ final class Parser
         }
         else if (auto m = match(code, &isOp))
         {
-            return parseOpApply(ctx, code, prevAsi, es, onSameLineOnly, replace, m);
+            return parseOpApply(ctx, code, prevAsi, es, onSameLineOnly, m);
         }
 
         if (code.length && code[0] =='\n')
@@ -127,13 +113,16 @@ final class Parser
     }
 
 
+
+
     private:
 
 
+
+
     Asi parseVar (ParseContext ctx, ref dstring code, Asi prevAsi, 
-                  EvalStrategy es, bool onSameLineOnly, out bool replace)
+                  EvalStrategy es, bool onSameLineOnly, dstring varKeyword)
     {
-        bool _;
         Asi res;
 
         skipWhite(code);
@@ -153,8 +142,13 @@ final class Parser
             }
             return new Var(new Assign ("<missing>", exp));
         }
+        else if (peekIdent(code, "var"))
+        {
+            remark.parser.redundantVarKeyword();
+            return new Err(new Ident(varKeyword));
+        }
                 
-        res = parseAsi(ParseContext.var, code, null, es);
+        res = parseAsi(ParseContext.var, code, null, es, onSameLineOnly);
 
         auto ass = cast(Assign)res;
         if (ass)
@@ -182,6 +176,8 @@ final class Parser
     }
 
 
+
+
     Exp parseIdentOrAssign (ParseContext ctx, ref dstring code, Asi prevAsi, 
                             EvalStrategy es, bool onSameLineOnly, dstring identStr)
     {
@@ -192,7 +188,7 @@ final class Parser
         if (ctx != ParseContext.var && !mEq)
             return ident;
 
-        auto val = parseAsi(ParseContext.assign, code, null, es);
+        auto val = parseAsi(ParseContext.assign, code, null, es, onSameLineOnly);
 
         if (!val)
         {
@@ -215,12 +211,13 @@ final class Parser
     }
     
 
+
+
     Exp parseOpApply (ParseContext ctx, ref dstring code, Asi prevAsi, 
-                      EvalStrategy es, bool onSameLineOnly, out bool replace,
-                      dstring opStr)
+                      EvalStrategy es, bool onSameLineOnly, dstring opStr)
     {
         auto op1 = prevAsi;
-        auto op2 = parseAsi(ParseContext.op, code, null, es);
+        auto op2 = parseAsi(ParseContext.op, code, null, es, onSameLineOnly);
 
         if (!op1 && !op2)
         {
@@ -259,13 +256,16 @@ final class Parser
             op2 = new Err(stm2);
         }
 
-        replace = true;
         return new OpApply(opStr, sureCast!Exp(op1), sureCast!Exp(op2));
     }
 }
 
 
+
+
 private:
+
+
 
 
 void skipWhite (ref dstring code)
@@ -280,6 +280,8 @@ void skipWhite (ref dstring code)
             break;
     }
 }
+
+
 
 
 @trusted Exp getIntOrErrFromString (dstring s, EvalStrategy es, out bool hasError)
@@ -306,9 +308,17 @@ void skipWhite (ref dstring code)
     }
 }
 
+
+
+
 bool isWhite (const dchar ch) { return ch == ' ' || ch == '\t'; }
+
 bool isInt (const dchar ch) { return ch >= '0' && ch <= '9'; }
+
 bool isIdent (const dchar ch) { return ch >= 'a' && ch <= 'z'; }
+
+
+
 
 bool isOp (const dchar ch)
 { 
@@ -339,6 +349,7 @@ dstring match(ref dstring code, bool function (const dchar) @safe nothrow isMatc
 }
 
 
+
 dstring match(ref dstring code, const dstring s)
 {
     if (code.length < s.length)
@@ -351,6 +362,7 @@ dstring match(ref dstring code, const dstring s)
     code = code[s.length .. $];
     return m;
 }
+
 
 
 
@@ -371,6 +383,29 @@ dstring matchIdent(ref dstring code, const dstring s)
 
     return null;
 }
+
+
+
+
+dstring peekIdent(const dstring code2, const dstring s)
+{
+    dstring code = code2;
+    if (code.length < s.length)
+        return null;
+
+    if (code[0 .. s.length] != s)
+        return null;
+
+    auto m = code[0 .. s.length];
+
+    code = code[s.length .. $];
+
+    if (!code.length || (code.length && !code[0].isIdent()))
+        return m;
+
+    return null;
+}
+
 
 
 
