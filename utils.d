@@ -114,6 +114,36 @@ pure size_t count (T, U) (const T[] items, const U item)
 
 
 
+
+pure size_t countUntil (T, U) (const T[] items, const U item)
+{
+    foreach (ix, i; items)
+        if (i == item)
+            return ix;
+    return items.length;
+}
+
+
+
+
+pure inout(T)[] sliceBefore (T, U) (inout(T)[] items, const U item)
+{
+    return items[0 .. items.countUntil(item)];
+}
+
+
+
+
+pure inout(T)[] sliceAfter (T, U) (inout(T)[] items, const U item)
+{
+    auto cu = items.countUntil(item);
+    if (cu < items.length)
+        return items[cu + 1 .. $];
+    return null;
+}
+
+
+
 pure @trusted dstring toLowerAscii (const dstring s)
 {
     auto res = new dchar[s.length];

@@ -1,8 +1,12 @@
 module interactive;
 
+import std.file : exists;
 import utils, common, parser, printer, exceptions, interpreter;
 
+
 @safe nothrow:
+
+
 
 
 final class Interactive
@@ -15,16 +19,26 @@ final class Interactive
     Interpreter interpreter;
     EvalStrategy es;
     Parser parser;
+    Thrower th;
+
+
+
 
     this (IReader reader, IPrinter printer, ExceptionPrinter ep, AsiPrinter asip)
     {
         this.reader = reader;
         this.printer = printer;
         this.asip = asip;
-        interpreter =  new Interpreter(new Thrower(ep));
+        th = new Thrower(ep);
+        interpreter =  new Interpreter(th);
         parser = new Parser;
         printBanner();
+        enum ar = "autorun.ef";
+        if (ar.fileExists())
+            runEfFile(ar);
     }
+
+
 
 
     void run ()
@@ -37,13 +51,13 @@ final class Interactive
 
             auto ln = reader.readln()[0 .. $ - 1]/*trim \n*/;
 
-            switch (ln.toLowerAscii())
+            switch (ln.sliceBefore(' ').toLowerAscii())
             {
                 case ":q":
                 case ":quit":
                 case ":exit":
                     return;
-
+ 
                 case ":help":
                 case ":h":
                 case ":?":
@@ -66,6 +80,14 @@ final class Interactive
                     setEvalStrategy(EvalStrategy.lax);
                     break;
 
+                case ":load":
+                    auto filePath = ln.sliceAfter(' ');
+                    if (filePath.length && !(filePath.length >= 3 && filePath[$ - 3 .. $].toLowerAscii() == ".ef"))
+                        filePath ~= ".ef";
+
+                    runEfFile(filePath);
+                    break;
+
                 default:
                     if (ln.length && ln[0] == ':')
                     {
@@ -83,6 +105,30 @@ final class Interactive
     }
 
 
+
+
+    private void runEfFile (dstring filePath)
+    {
+        interpreter = new Interpreter(th);
+
+        try
+        {
+            auto str = loadFile(filePath.toString(), th);
+            runOne(str);
+        }
+        catch (InterpreterException ex)
+        {
+            // do nothing
+        }
+        catch (Exception ex)
+        {
+            assert (false, ex.msg);
+        }
+    }
+
+
+
+
     private void runOne (dstring ln)
     {
         auto asis = parser.parse(ln, es);
@@ -98,6 +144,8 @@ final class Interactive
     }
 
 
+
+
     void printBanner ()
     {
         printer.color(Color.cyan);
@@ -109,15 +157,20 @@ final class Interactive
     }
 
 
+
+
     void printHelp ()
     {
         printer.color(Color.white, true);
-        printer.println(":q         Quit application");
-        printer.println(":throwing  Stop evaluation with exception");
-        printer.println(":strict    Propagate error to result of expression");
-        printer.println(":lax       Try to evaluate invalid expressions");
+        printer.println(":q           Quit application");
+        printer.println(":throwing    Stop evaluation with exception");
+        printer.println(":strict      Propagate error to result of expression");
+        printer.println(":lax         Try to evaluate invalid expressions");
+        printer.println(":load <file> Run program from file");
         printer.restoreColor();
     }
+
+
 
 
     void setEvalStrategy (EvalStrategy es)
@@ -137,6 +190,8 @@ final class Interactive
     }
 
 
+
+
     Color evalStrategyColor (EvalStrategy es)
     {
         final switch (es) with (EvalStrategy) 
@@ -148,6 +203,8 @@ final class Interactive
     }
 
 
+
+
     bool evalStrategyBold (EvalStrategy es)
     {
         final switch (es) with (EvalStrategy) 
@@ -156,5 +213,20 @@ final class Interactive
             case strict: return true;
             case lax: return true;
         }
+    }
+}
+
+
+
+
+@trusted bool fileExists (string path)
+{
+    try
+    {
+        return exists(path);
+    }
+    catch (Exception ex)
+    {
+        assert (false);
     }
 }

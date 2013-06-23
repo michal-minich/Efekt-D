@@ -1,7 +1,5 @@
 fix: underflow in lax mode
 unittests: ident, var, unknown operators
-program runner
-run programs from interactive
 static/dynamic verification (declared vars)
 
 value range propagation
